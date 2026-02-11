@@ -1,0 +1,10 @@
+{
+    "name": "yt-strategy-agent-landing",
+    "private": true,
+    "version": "1.0.0",
+    "scripts": {
+      "dev": "serve .",
+      "build": "echo 'static site'",
+      "start": "serve ."
+    }
+  }
