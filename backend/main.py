@@ -42,17 +42,6 @@ from backend.blueprint_v2 import build_blueprint_v2
 
 from fastapi.middleware.cors import CORSMiddleware
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://yt-strategy-agent-yvvz.vercel.app",
-        "http://localhost:3000",
-        "http://localhost:5173"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 # ----- ENV -----
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENV_PATH = os.path.join(BASE_DIR, ".env")
@@ -64,7 +53,23 @@ ADMIN_TOKEN = os.getenv("API_AUTH_TOKEN")
 DEFAULT_YT_KEY = os.getenv("YOUTUBE_API_KEY")
 CACHE_TTL = int(os.getenv("YT_CACHE_TTL_SECONDS", str(60 * 60 * 6)))  # 6h
 
+# ✅ IMPORTANT: app doit exister AVANT add_middleware
 app = FastAPI(title="YT Strategy Agent (Multi-User)")
+
+# ✅ CORS (pour que Vercel puisse appeler Render)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://yt-strategy-agent-yvvz.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ],
+    # optionnel mais très utile pour previews Vercel :
+    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")
@@ -1576,6 +1581,7 @@ def landing():
     with open(index_path, "r", encoding="utf-8") as f:
         return HTMLResponse(f.read())
 
+
 # permet aussi /static/xxx si tu ajoutes CSS plus tard
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -1590,5 +1596,6 @@ if __name__ == "__main__":
         port=int(os.getenv("PORT", "8000")),
         reload=True,
     )
+
 
 
