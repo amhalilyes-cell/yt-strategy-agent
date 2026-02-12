@@ -78,6 +78,68 @@
       color: #666;
       font-size: 0.9rem;
     }
+
+    /* ===== API tester styles ===== */
+    .api {
+      margin-top: 20px;
+      padding: 24px;
+      border-radius: 12px;
+      background: #111;
+      border: 1px solid #222;
+      color: #fff;
+    }
+    .api label {
+      display: block;
+      margin-top: 10px;
+      font-size: 0.95rem;
+      color: #d1d1d1;
+    }
+    .api input, .api select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #0f0f0f;
+      color: #fff;
+      margin-top: 8px;
+      box-sizing: border-box;
+      outline: none;
+    }
+    .api button {
+      margin-top: 14px;
+      padding: 12px 18px;
+      border-radius: 8px;
+      border: 0;
+      font-weight: 800;
+      cursor: pointer;
+      background: #00e5ff;
+      color: #000;
+    }
+    .api button:active {
+      transform: translateY(1px);
+    }
+    .api pre {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #0b0b0b;
+      border: 1px solid #222;
+      color: #d1d1d1;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 60px;
+    }
+    .hint {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      color: #a9a9a9;
+    }
+    .small {
+      font-size: 0.9rem;
+      color: #a9a9a9;
+      margin-top: 6px;
+    }
   </style>
 </head>
 <body>
@@ -133,14 +195,82 @@
         Tu es créateur business (SaaS, Agency, OFM, Ecom) ?<br>
         Je t’analyse une vidéo et je te montre le blueprint.
       </p>
-      <a href="https://tally.so/r/xxxxxx">Demander un audit gratuit</a>
-      <!-- remplace par Tally / Typeform / Google Form -->
+      <a href="https://tally.so/r/xxxxxx" target="_blank" rel="noreferrer">Demander un audit gratuit</a>
+      <div class="small">Remplace le lien Tally par ton vrai lien.</div>
+    </div>
+
+    <!-- API TEST -->
+    <h2>Tester l’API</h2>
+    <div class="card api">
+      <div class="hint">Ça appelle ton backend Render : <strong>https://yt-strategy-agent.onrender.com</strong></div>
+
+      <label>Token (X-Auth-Token)</label>
+      <input id="token" placeholder="colle ton token ici (ex: l31nUVaC_...)" />
+
+      <label>Endpoint</label>
+      <select id="endpoint">
+        <option value="health">GET /health (test simple)</option>
+        <option value="blueprint">POST /playbook/blueprint/v2 (blueprint)</option>
+      </select>
+
+      <button id="run">Tester</button>
+      <pre id="out">Résultat ici…</pre>
     </div>
 
     <footer>
       © 2026 — YT Strategy Agent
     </footer>
   </div>
+
+  <script>
+    // Ton backend Render
+    const API_BASE = "https://yt-strategy-agent.onrender.com";
+
+    const btn = document.getElementById("run");
+    const out = document.getElementById("out");
+
+    btn.addEventListener("click", async () => {
+      const token = document.getElementById("token").value.trim();
+      const endpoint = document.getElementById("endpoint").value;
+
+      out.textContent = "Loading...";
+
+      try {
+        if (endpoint === "health") {
+          const r = await fetch(`${API_BASE}/health`);
+          const data = await r.json();
+          out.textContent = JSON.stringify(data, null, 2);
+          return;
+        }
+
+        // blueprint
+        if (!token) {
+          out.textContent = "❌ Mets ton token dans le champ (X-Auth-Token).";
+          return;
+        }
+
+        const r = await fetch(`${API_BASE}/playbook/blueprint/v2`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Auth-Token": token
+          },
+          body: JSON.stringify({
+            video_id: "nV6OzZ6ToXE",
+            baseline_lookback: 30,
+            vertical: "saas",
+            goal: "leads",
+            language: "fr"
+          })
+        });
+
+        const text = await r.text();
+        out.textContent = text;
+      } catch (e) {
+        out.textContent = "❌ Erreur: " + (e && e.message ? e.message : String(e));
+      }
+    });
+  </script>
 
 </body>
 </html>
