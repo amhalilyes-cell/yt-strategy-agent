@@ -40,6 +40,19 @@ from backend.snapshots import collect_snapshots_for_video_ids
 # ✅ BLUEPRINT V2 builder
 from backend.blueprint_v2 import build_blueprint_v2
 
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://yt-strategy-agent-yvvz.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:5173"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # ----- ENV -----
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENV_PATH = os.path.join(BASE_DIR, ".env")
