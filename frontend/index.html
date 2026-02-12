@@ -5,36 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>YT Strategy Agent — Trouve tes vidéos x10+</title>
   <style>
+    :root{
+      --bg:#0f0f0f;
+      --panel:#161616;
+      --panel2:#111;
+      --border:#222;
+      --muted:#d1d1d1;
+      --muted2:#a9a9a9;
+      --accent:#00e5ff;
+      --accent2:#0077ff;
+      --danger:#ff4d4d;
+      --ok:#35f28b;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
     body {
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
       padding: 0;
-      background: #0f0f0f;
+      background: var(--bg);
       color: #ffffff;
       line-height: 1.6;
     }
     .container {
-      max-width: 900px;
+      max-width: 980px;
       margin: auto;
       padding: 60px 20px;
     }
-    h1, h2, h3 { line-height: 1.2; }
-    h1 { font-size: 3rem; margin-bottom: 20px; }
-    h2 { font-size: 2rem; margin-top: 60px; }
-    p { color: #d1d1d1; font-size: 1.1rem; }
-    .highlight { color: #00e5ff; }
+    h1, h2, h3 { line-height: 1.2; margin: 0; }
+    h1 { font-size: 3rem; margin-bottom: 18px; }
+    h2 { font-size: 2rem; margin-top: 60px; margin-bottom: 14px; }
+    h3 { font-size: 1.2rem; margin-bottom: 10px; }
+    p { color: var(--muted); font-size: 1.05rem; margin: 10px 0 0; }
+    .highlight { color: var(--accent); }
     .card {
-      background: #161616;
-      border-radius: 12px;
+      background: var(--panel);
+      border-radius: 14px;
       padding: 24px;
-      margin-top: 20px;
+      margin-top: 18px;
+      border: 1px solid rgba(255,255,255,0.04);
     }
-    ul { padding-left: 20px; }
-    li { margin-bottom: 10px; }
+    ul { padding-left: 20px; margin: 8px 0 0; }
+    li { margin-bottom: 10px; color: var(--muted); }
+    ol { margin: 8px 0 0; color: var(--muted); }
     .cta {
       margin-top: 60px;
       padding: 40px;
-      background: linear-gradient(135deg, #00e5ff, #0077ff);
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
       color: #000;
       border-radius: 16px;
       text-align: center;
@@ -43,13 +59,13 @@
     .cta p { color: #000; }
     .cta a {
       display: inline-block;
-      margin-top: 20px;
+      margin-top: 18px;
       padding: 14px 28px;
       background: #000;
       color: #fff;
       text-decoration: none;
-      border-radius: 8px;
-      font-weight: 600;
+      border-radius: 10px;
+      font-weight: 700;
     }
     footer {
       margin-top: 80px;
@@ -60,23 +76,23 @@
 
     /* ===== API tester styles ===== */
     .api {
-      margin-top: 20px;
+      margin-top: 14px;
       padding: 24px;
-      border-radius: 12px;
-      background: #111;
-      border: 1px solid #222;
+      border-radius: 14px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
       color: #fff;
     }
     .api label {
       display: block;
       margin-top: 10px;
       font-size: 0.95rem;
-      color: #d1d1d1;
+      color: var(--muted);
     }
     .api input, .api select {
       width: 100%;
       padding: 12px;
-      border-radius: 8px;
+      border-radius: 10px;
       border: 1px solid #333;
       background: #0f0f0f;
       color: #fff;
@@ -84,31 +100,138 @@
       box-sizing: border-box;
       outline: none;
     }
-    .api button {
+    .row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media (min-width: 900px){
+      .row { grid-template-columns: 1fr 1fr; }
+    }
+
+    .btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
       margin-top: 14px;
+    }
+    .api button {
       padding: 12px 18px;
-      border-radius: 8px;
+      border-radius: 10px;
       border: 0;
       font-weight: 800;
       cursor: pointer;
-      background: #00e5ff;
+      background: var(--accent);
       color: #000;
     }
+    .api button.secondary{
+      background: #1b1b1b;
+      color: #fff;
+      border: 1px solid #2b2b2b;
+      font-weight: 700;
+    }
     .api button:active { transform: translateY(1px); }
-    .api pre {
+
+    .hint { margin-top: 8px; font-size: 0.95rem; color: var(--muted2); }
+    .small { font-size: 0.9rem; color: var(--muted2); margin-top: 6px; }
+
+    /* ===== Output ===== */
+    .statusline{
       margin-top: 12px;
-      padding: 12px;
-      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 0.92rem;
+      color: var(--muted2);
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #2b2b2b;
+      background:#0b0b0b;
+      font-family: var(--mono);
+      font-size:0.9rem;
+      color:#ddd;
+    }
+    .pill.ok{ border-color: rgba(53,242,139,0.35); color: var(--ok); }
+    .pill.bad{ border-color: rgba(255,77,77,0.35); color: var(--danger); }
+
+    .outWrap{
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: 12px;
       background: #0b0b0b;
-      border: 1px solid #222;
+      border: 1px solid var(--border);
+    }
+    .outPre{
+      margin:0;
+      font-family: var(--mono);
+      font-size: 0.92rem;
       color: #d1d1d1;
-      overflow: auto;
       white-space: pre-wrap;
       word-break: break-word;
-      min-height: 60px;
     }
-    .hint { margin-top: 10px; font-size: 0.95rem; color: #a9a9a9; }
-    .small { font-size: 0.9rem; color: #a9a9a9; margin-top: 6px; }
+
+    /* ===== Blueprint UI ===== */
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+      margin-top:14px;
+    }
+    @media (min-width: 900px){
+      .grid2{ grid-template-columns: 1fr 1fr; }
+    }
+    .kv{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .kv .k{ color: var(--muted2); font-size:0.9rem; }
+    .kv .v{ color:#fff; font-weight:800; }
+    .hr{
+      height:1px;
+      background:#1d1d1d;
+      margin:16px 0;
+    }
+    .tag{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      background:#0f0f0f;
+      border:1px solid #2a2a2a;
+      color:#e8e8e8;
+      font-size:0.9rem;
+      margin-right:8px;
+      margin-top:8px;
+    }
+    .sectionTitle{
+      margin-top: 8px;
+      font-size: 1.05rem;
+      font-weight: 900;
+    }
+    .muted{
+      color: var(--muted2);
+      font-size:0.95rem;
+    }
+    .bullets{
+      margin:8px 0 0;
+      padding-left: 18px;
+    }
+    .bullets li{
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+    .copyNote{
+      color: var(--muted2);
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -147,16 +270,6 @@
       </ul>
     </div>
 
-    <!-- PREUVE -->
-    <h2>Résultats observés</h2>
-    <div class="card">
-      <p>
-        ✔ Vidéos détectées à <strong>x31</strong> la moyenne de la chaîne<br>
-        ✔ Baseline calculée sur 30 vidéos<br>
-        ✔ Aucune intuition : uniquement des signaux mesurables
-      </p>
-    </div>
-
     <!-- CTA -->
     <div class="cta">
       <h2>Demander un accès</h2>
@@ -171,19 +284,48 @@
     <!-- API TEST -->
     <h2>Tester l’API</h2>
     <div class="card api">
-      <div class="hint">Ça appelle ton backend Render : <strong>https://yt-strategy-agent.onrender.com</strong></div>
+      <div class="hint">Ça appelle ton backend Render : <strong id="apiBaseText"></strong></div>
 
-      <label>Token (X-Auth-Token)</label>
-      <input id="token" placeholder="colle ton token ici (ex: l31nUVaC_...)" />
+      <div class="row">
+        <div>
+          <label>Token (X-Auth-Token)</label>
+          <input id="token" placeholder="colle ton token ici (ex: l31nUVaC_...)" />
+          <div class="small">Astuce: colle ton token admin si tu veux éviter les 401.</div>
+        </div>
 
-      <label>Endpoint</label>
-      <select id="endpoint">
-        <option value="health">GET /health (test simple)</option>
-        <option value="blueprint">POST /playbook/blueprint/v2 (blueprint)</option>
-      </select>
+        <div>
+          <label>Endpoint</label>
+          <select id="endpoint">
+            <option value="health">GET /health (test simple)</option>
+            <option value="blueprint">POST /playbook/blueprint/v2 (blueprint lisible)</option>
+          </select>
 
-      <button id="run">Tester</button>
-      <pre id="out">Résultat ici…</pre>
+          <label style="margin-top:10px;">Video ID (YouTube)</label>
+          <input id="videoId" value="nV6OzZ6ToXE" />
+          <div class="small">Tu peux mettre n’importe quel video_id présent dans ta DB.</div>
+        </div>
+      </div>
+
+      <div class="btns">
+        <button id="run">Tester</button>
+        <button id="copyMd" class="secondary" type="button">Copier en Markdown</button>
+        <button id="showRaw" class="secondary" type="button">Afficher JSON brut</button>
+      </div>
+
+      <div class="statusline" id="statusline">
+        <span class="pill" id="pill">READY</span>
+        <span id="statusText" class="muted">—</span>
+      </div>
+
+      <!-- rendu lisible -->
+      <div id="pretty" class="outWrap" style="display:none;"></div>
+
+      <!-- JSON brut -->
+      <div id="rawWrap" class="outWrap">
+        <pre id="out" class="outPre">Résultat ici…</pre>
+      </div>
+
+      <div class="copyNote" id="copyNote" style="display:none;"></div>
     </div>
 
     <footer>
@@ -191,32 +333,304 @@
     </footer>
   </div>
 
-  <!-- ✅ UN SEUL SCRIPT (corrigé) -->
   <script>
-    // ✅ Ton backend Render (attention: onrender.com, pas onrender)
+    // ✅ Ton backend Render
     const API_BASE = "https://yt-strategy-agent.onrender.com";
+    document.getElementById("apiBaseText").textContent = API_BASE;
 
     const btn = document.getElementById("run");
     const out = document.getElementById("out");
 
+    const pretty = document.getElementById("pretty");
+    const rawWrap = document.getElementById("rawWrap");
+    const showRawBtn = document.getElementById("showRaw");
+    const copyBtn = document.getElementById("copyMd");
+    const copyNote = document.getElementById("copyNote");
+
+    const pill = document.getElementById("pill");
+    const statusText = document.getElementById("statusText");
+
+    let lastJson = null;     // stocke la réponse JSON
+    let lastMd = "";         // stocke le markdown
+
+    function setStatus(ok, text){
+      pill.classList.remove("ok","bad");
+      if (ok === true) { pill.classList.add("ok"); pill.textContent = "OK"; }
+      else if (ok === false) { pill.classList.add("bad"); pill.textContent = "ERROR"; }
+      else { pill.textContent = "READY"; }
+      statusText.textContent = text || "—";
+    }
+
+    function esc(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;");
+    }
+
+    function arr(x){ return Array.isArray(x) ? x : []; }
+
+    function toMarkdown(bp){
+      if (!bp || typeof bp !== "object") return "";
+
+      const title = bp.title || "(sans titre)";
+      const format = bp.format || bp.format_type || bp.type || "";
+      const duration = Array.isArray(bp.duration_target_seconds) ? bp.duration_target_seconds.join("–") : "";
+
+      const hook = bp.hook_structure || {};
+      const posting = bp.posting_strategy || {};
+      const kill = bp.kill_conditions || {};
+      const ideas = arr(bp.ideas);
+
+      const content = arr(bp.content_structure);
+
+      let md = `# Blueprint — ${title}\n\n`;
+      if (format || duration){
+        md += `**Format:** ${format || "-"}  \n`;
+        md += `**Durée cible:** ${duration ? duration + "s" : "-"}\n\n`;
+      }
+
+      md += `## Hook\n`;
+      if (hook.type) md += `- Type: ${hook.type}\n`;
+      if (hook.first_1s_goal) md += `- Goal 1s: ${hook.first_1s_goal}\n`;
+      arr(hook.avoid).forEach(a => md += `- À éviter: ${a}\n`);
+      const ex = arr(hook.examples || hook.examples_fr);
+      if (ex.length){
+        md += `\n**Exemples:**\n`;
+        ex.forEach(e => md += `- ${e}\n`);
+      }
+
+      md += `\n## Structure\n`;
+      content.forEach(s => md += `- ${s}\n`);
+
+      md += `\n## Posting\n`;
+      Object.entries(posting).forEach(([k,v]) => {
+        md += `- ${k}: ${JSON.stringify(v)}\n`;
+      });
+
+      md += `\n## Kill rules\n`;
+      Object.entries(kill).forEach(([k,v]) => {
+        md += `- ${k}: ${String(v)}\n`;
+      });
+
+      if (ideas.length){
+        md += `\n## Idées\n`;
+        ideas.forEach(it => {
+          if (typeof it === "string") { md += `- ${it}\n`; return; }
+          const idea = it.idea || it.title || "(idée)";
+          md += `- **${idea}**\n`;
+          if (it.hook_template) md += `  - Hook: ${it.hook_template}\n`;
+          if (Array.isArray(it.hook_variations)) it.hook_variations.forEach(h => md += `  - Hook var: ${h}\n`);
+          if (it.note) md += `  - Note: ${it.note}\n`;
+        });
+      }
+
+      return md.trim();
+    }
+
+    function renderPretty(bp){
+      // reset
+      pretty.innerHTML = "";
+      copyNote.style.display = "none";
+      copyNote.textContent = "";
+
+      if (!bp || typeof bp !== "object"){
+        pretty.innerHTML = `<pre class="outPre">Impossible d'afficher (réponse non JSON).</pre>`;
+        return;
+      }
+
+      // support si ta réponse est déjà "blueprint" encapsulé
+      // (on garde simple : si y'a ok + des champs blueprint, ça passe)
+      const title = bp.title || "(sans titre)";
+      const format = bp.format || "-";
+      const duration = Array.isArray(bp.duration_target_seconds) ? bp.duration_target_seconds.join("–") + "s" : "-";
+      const confidence = bp.confidence || bp.confidence_level || "-";
+
+      const hook = bp.hook_structure || {};
+      const content = arr(bp.content_structure);
+      const posting = bp.posting_strategy || {};
+      const kill = bp.kill_conditions || {};
+      const ideas = arr(bp.ideas);
+
+      const shift = (bp.format_shift || {});
+      const shiftDetected = !!shift.detected;
+      const shiftDims = arr(shift.dimensions);
+
+      const hookAvoid = arr(hook.avoid);
+      const hookExamples = arr(hook.examples || hook.examples_fr);
+
+      const tags = [];
+      if (bp.vertical) tags.push(`vertical: ${bp.vertical}`);
+      if (bp.goal) tags.push(`goal: ${bp.goal}`);
+      if (bp.language) tags.push(`lang: ${bp.language}`);
+      if (shiftDetected) tags.push(`⚠ format shift`);
+
+      pretty.innerHTML = `
+        <div class="grid2">
+          <div class="card" style="margin-top:0;background:#0b0b0b;border:1px solid var(--border);">
+            <div class="kv">
+              <div class="k">Titre</div>
+              <div class="v">${esc(title)}</div>
+            </div>
+            <div style="margin-top:10px;">
+              <span class="tag">format: ${esc(format)}</span>
+              <span class="tag">durée: ${esc(duration)}</span>
+              <span class="tag">confidence: ${esc(confidence)}</span>
+              ${tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:0;background:#0b0b0b;border:1px solid var(--border);">
+            <div class="sectionTitle">Posting strategy</div>
+            <div class="muted">Règles simples à suivre</div>
+            <ul class="bullets">
+              ${Object.keys(posting).length ? Object.entries(posting).map(([k,v]) =>
+                `<li><strong>${esc(k)}:</strong> ${esc(typeof v === "string" ? v : JSON.stringify(v))}</li>`
+              ).join("") : `<li class="muted">—</li>`}
+            </ul>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="grid2">
+          <div class="card" style="margin-top:0;background:#0b0b0b;border:1px solid var(--border);">
+            <div class="sectionTitle">Hook</div>
+            <div class="muted">Structure et exemples</div>
+            <ul class="bullets">
+              ${hook.type ? `<li><strong>Type:</strong> ${esc(hook.type)}</li>` : ""}
+              ${hook.first_1s_goal ? `<li><strong>Goal 1s:</strong> ${esc(hook.first_1s_goal)}</li>` : ""}
+              ${hookAvoid.length ? `<li><strong>À éviter:</strong> ${esc(hookAvoid.join(", "))}</li>` : ""}
+            </ul>
+            ${hookExamples.length ? `
+              <div style="margin-top:12px;" class="muted"><strong>Exemples</strong></div>
+              <ul class="bullets">
+                ${hookExamples.slice(0,6).map(x => `<li>${esc(x)}</li>`).join("")}
+              </ul>
+            ` : `<div class="muted" style="margin-top:10px;">(Pas d’exemples)</div>`}
+          </div>
+
+          <div class="card" style="margin-top:0;background:#0b0b0b;border:1px solid var(--border);">
+            <div class="sectionTitle">Kill rules</div>
+            <div class="muted">Quand tuer / re-edit</div>
+            <ul class="bullets">
+              ${Object.keys(kill).length ? Object.entries(kill).map(([k,v]) =>
+                `<li><strong>${esc(k)}:</strong> ${esc(String(v))}</li>`
+              ).join("") : `<li class="muted">—</li>`}
+            </ul>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="card" style="margin-top:0;background:#0b0b0b;border:1px solid var(--border);">
+          <div class="sectionTitle">Content structure</div>
+          <div class="muted">Plan de la vidéo</div>
+          <ul class="bullets">
+            ${content.length ? content.map(s => `<li>${esc(s)}</li>`).join("") : `<li class="muted">—</li>`}
+          </ul>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="grid2">
+          <div class="card" style="margin-top:0;background:#0b0b0b;border:1px solid var(--border);">
+            <div class="sectionTitle">Idées</div>
+            <div class="muted">Angles réplicables</div>
+            <ul class="bullets">
+              ${ideas.length ? ideas.slice(0,10).map(it => {
+                if (typeof it === "string") return `<li>${esc(it)}</li>`;
+                const idea = it.idea || it.title || "(idée)";
+                const hookT = it.hook_template ? `<div class="muted" style="margin-top:6px;">Hook: <span style="color:#eaeaea">${esc(it.hook_template)}</span></div>` : "";
+                const note = it.note ? `<div class="muted" style="margin-top:6px;">Note: ${esc(it.note)}</div>` : "";
+                const hv = Array.isArray(it.hook_variations) ? it.hook_variations.slice(0,3).map(h => `<div class="muted" style="margin-top:6px;">Var: ${esc(h)}</div>`).join("") : "";
+                return `<li><strong>${esc(idea)}</strong>${hookT}${hv}${note}</li>`;
+              }).join("") : `<li class="muted">—</li>`}
+            </ul>
+          </div>
+
+          <div class="card" style="margin-top:0;background:#0b0b0b;border:1px solid var(--border);">
+            <div class="sectionTitle">Format shift</div>
+            <div class="muted">Détection</div>
+            <ul class="bullets">
+              <li><strong>Detected:</strong> ${shiftDetected ? "true" : "false"}</li>
+              <li><strong>Dimensions:</strong> ${shiftDims.length ? esc(shiftDims.join(", ")) : "—"}</li>
+            </ul>
+          </div>
+        </div>
+      `;
+    }
+
+    function showRaw(text){
+      rawWrap.style.display = "block";
+      pretty.style.display = "none";
+      out.textContent = text || "";
+    }
+
+    function showPretty(){
+      rawWrap.style.display = "none";
+      pretty.style.display = "block";
+    }
+
+    showRawBtn.onclick = () => {
+      if (rawWrap.style.display === "none") {
+        // afficher brut
+        showRaw(JSON.stringify(lastJson ?? {}, null, 2));
+        showRawBtn.textContent = "Afficher rendu lisible";
+      } else {
+        // afficher joli
+        showPretty();
+        showRawBtn.textContent = "Afficher JSON brut";
+      }
+    };
+
+    copyBtn.onclick = async () => {
+      if (!lastMd) {
+        copyNote.style.display = "block";
+        copyNote.textContent = "❌ Rien à copier (génère d’abord un blueprint).";
+        return;
+      }
+      try{
+        await navigator.clipboard.writeText(lastMd);
+        copyNote.style.display = "block";
+        copyNote.textContent = "✅ Copié ! Tu peux coller ça dans Notion / Slack / Google Doc.";
+      }catch(e){
+        copyNote.style.display = "block";
+        copyNote.textContent = "❌ Impossible de copier (autorisation navigateur).";
+      }
+    };
+
     btn.onclick = async () => {
       const token = document.getElementById("token").value.trim();
       const endpoint = document.getElementById("endpoint").value;
+      const videoId = document.getElementById("videoId").value.trim() || "nV6OzZ6ToXE";
 
+      setStatus(null, "Loading...");
+      lastJson = null;
+      lastMd = "";
+      copyNote.style.display = "none";
+
+      // reset display
+      pretty.style.display = "none";
+      rawWrap.style.display = "block";
+      showRawBtn.textContent = "Afficher JSON brut";
       out.textContent = "Loading...";
 
       try {
-        // GET /health
         if (endpoint === "health") {
           const r = await fetch(API_BASE + "/health");
           const data = await r.json();
-          out.textContent = JSON.stringify(data, null, 2);
+          lastJson = data;
+
+          setStatus(r.ok, `GET /health — HTTP ${r.status}`);
+          showRaw(JSON.stringify(data, null, 2));
           return;
         }
 
-        // POST /playbook/blueprint/v2
         if (!token) {
-          out.textContent = "❌ Token manquant (X-Auth-Token).";
+          setStatus(false, "Token manquant (X-Auth-Token).");
+          showRaw("❌ Token manquant (X-Auth-Token).");
           return;
         }
 
@@ -227,7 +641,7 @@
             "X-Auth-Token": token
           },
           body: JSON.stringify({
-            video_id: "nV6OzZ6ToXE",
+            video_id: videoId,
             baseline_lookback: 30,
             vertical: "saas",
             goal: "leads",
@@ -235,14 +649,38 @@
           })
         });
 
-        // affiche status + body (utile debug)
         const text = await r.text();
-        out.textContent = `HTTP ${r.status}\n\n${text}`;
+
+        // try parse json
+        let parsed = null;
+        try { parsed = JSON.parse(text); } catch(e) {}
+
+        if (!r.ok) {
+          setStatus(false, `POST /playbook/blueprint/v2 — HTTP ${r.status}`);
+          showRaw(`HTTP ${r.status}\n\n${text}`);
+          return;
+        }
+
+        lastJson = parsed || { raw: text };
+        setStatus(true, `POST /playbook/blueprint/v2 — HTTP ${r.status}`);
+
+        // rendu lisible si json
+        if (parsed && typeof parsed === "object") {
+          lastMd = toMarkdown(parsed);
+          renderPretty(parsed);
+          showPretty();
+          showRawBtn.textContent = "Afficher JSON brut";
+        } else {
+          showRaw(`HTTP ${r.status}\n\n${text}`);
+        }
+
       } catch (e) {
-        out.textContent = "❌ Erreur: " + (e && e.message ? e.message : String(e));
+        setStatus(false, "Erreur réseau / CORS");
+        showRaw("❌ Erreur: " + (e && e.message ? e.message : String(e)));
       }
     };
   </script>
 
 </body>
 </html>
+
