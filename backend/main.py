@@ -50,6 +50,7 @@ ENV_PATH = os.path.join(BASE_DIR, ".env")
 load_dotenv(ENV_PATH, override=True)
 
 ADMIN_TOKEN = os.getenv("API_AUTH_TOKEN")
+DEMO_TOKEN = os.getenv("DEMO_TOKEN", "demo-public") 
 DEFAULT_YT_KEY = os.getenv("YOUTUBE_API_KEY")
 CACHE_TTL = int(os.getenv("YT_CACHE_TTL_SECONDS", str(60 * 60 * 6)))  # 6h
 
@@ -130,6 +131,15 @@ def require_user(x_auth_token: str | None):
             "daily_quota": 999999,
             "plan": "admin",
         }
+
+        # ✅ DEMO TOKEN = accès limité sans DB (utile pour landing)
+demo = _norm_token(DEMO_TOKEN)
+if demo and token == demo:
+    return {
+        "token": "demo",
+        "daily_quota": 3,   # ✅ limite/jour demo (mets 3 ou 5)
+        "plan": "demo",
+    }
 
     # USER normal (DB)
     u = get_user_by_token(token)
