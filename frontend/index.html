@@ -297,19 +297,21 @@
           <label>Endpoint</label>
           <select id="endpoint">
             <option value="health">GET /health (test simple)</option>
-            <option value="blueprint">POST /playbook/blueprint/v2 (blueprint lisible)</option>
+            <option value="me">GET /user/me (auth)</option>
+            <option value="blueprint_v2">POST /playbook/blueprint/v2 (blueprint lisible)</option>
+            <option value="premium_pack">POST /premium/pack (premium)</option>
           </select>
 
           <label style="margin-top:10px;">Video ID (YouTube)</label>
           <input id="videoId" value="nV6OzZ6ToXE" />
-          <div class="small">Tu peux mettre n’importe quel video_id présent dans ta DB.</div>
+          <div class="small">⚠️ Pour blueprint/premium : la vidéo doit exister en DB (trend/bootstrap d’abord).</div>
         </div>
       </div>
 
       <div class="btns">
         <button id="run">Tester</button>
         <button id="copyMd" class="secondary" type="button">Copier en Markdown</button>
-        <button id="showRaw" class="secondary" type="button">Afficher JSON brut</button>
+        <button id="toggleView" class="secondary" type="button">Afficher JSON brut</button>
       </div>
 
       <div class="statusline" id="statusline">
@@ -334,7 +336,7 @@
   </div>
 
   <script>
-    // ✅ Ton backend Render
+    // ✅ Change juste ça si tu changes Render
     const API_BASE = "https://yt-strategy-agent.onrender.com";
     document.getElementById("apiBaseText").textContent = API_BASE;
 
@@ -343,15 +345,15 @@
 
     const pretty = document.getElementById("pretty");
     const rawWrap = document.getElementById("rawWrap");
-    const showRawBtn = document.getElementById("showRaw");
+    const toggleBtn = document.getElementById("toggleView");
     const copyBtn = document.getElementById("copyMd");
     const copyNote = document.getElementById("copyNote");
 
     const pill = document.getElementById("pill");
     const statusText = document.getElementById("statusText");
 
-    let lastJson = null;     // stocke la réponse JSON
-    let lastMd = "";         // stocke le markdown
+    let lastJson = null;
+    let lastMd = "";
 
     function setStatus(ok, text){
       pill.classList.remove("ok","bad");
@@ -368,10 +370,17 @@
         .replaceAll(">","&gt;")
         .replaceAll('"',"&quot;");
     }
-
     function arr(x){ return Array.isArray(x) ? x : []; }
 
-    function toMarkdown(bp){
+    function unwrapBlueprint(obj){
+      if (!obj || typeof obj !== "object") return obj;
+      if (obj.blueprint && typeof obj.blueprint === "object") return obj.blueprint;
+      if (obj.data && typeof obj.data === "object") return obj.data;
+      return obj;
+    }
+
+    function toMarkdown(bpRaw){
+      const bp = unwrapBlueprint(bpRaw);
       if (!bp || typeof bp !== "object") return "";
 
       const title = bp.title || "(sans titre)";
@@ -382,7 +391,6 @@
       const posting = bp.posting_strategy || {};
       const kill = bp.kill_conditions || {};
       const ideas = arr(bp.ideas);
-
       const content = arr(bp.content_structure);
 
       let md = `# Blueprint — ${title}\n\n`;
@@ -406,7 +414,7 @@
 
       md += `\n## Posting\n`;
       Object.entries(posting).forEach(([k,v]) => {
-        md += `- ${k}: ${JSON.stringify(v)}\n`;
+        md += `- ${k}: ${typeof v === "string" ? v : JSON.stringify(v)}\n`;
       });
 
       md += `\n## Kill rules\n`;
@@ -429,8 +437,8 @@
       return md.trim();
     }
 
-    function renderPretty(bp){
-      // reset
+    function renderPretty(bpRaw){
+      const bp = unwrapBlueprint(bpRaw);
       pretty.innerHTML = "";
       copyNote.style.display = "none";
       copyNote.textContent = "";
@@ -440,8 +448,6 @@
         return;
       }
 
-      // support si ta réponse est déjà "blueprint" encapsulé
-      // (on garde simple : si y'a ok + des champs blueprint, ça passe)
       const title = bp.title || "(sans titre)";
       const format = bp.format || "-";
       const duration = Array.isArray(bp.duration_target_seconds) ? bp.duration_target_seconds.join("–") + "s" : "-";
@@ -562,27 +568,22 @@
       `;
     }
 
-    function showRaw(text){
+    function showRaw(){
       rawWrap.style.display = "block";
       pretty.style.display = "none";
-      out.textContent = text || "";
+      out.textContent = JSON.stringify(lastJson ?? {}, null, 2);
+      toggleBtn.textContent = "Afficher rendu lisible";
     }
 
     function showPretty(){
       rawWrap.style.display = "none";
       pretty.style.display = "block";
+      toggleBtn.textContent = "Afficher JSON brut";
     }
 
-    showRawBtn.onclick = () => {
-      if (rawWrap.style.display === "none") {
-        // afficher brut
-        showRaw(JSON.stringify(lastJson ?? {}, null, 2));
-        showRawBtn.textContent = "Afficher rendu lisible";
-      } else {
-        // afficher joli
-        showPretty();
-        showRawBtn.textContent = "Afficher JSON brut";
-      }
+    toggleBtn.onclick = () => {
+      if (rawWrap.style.display === "none") showRaw();
+      else showPretty();
     };
 
     copyBtn.onclick = async () => {
@@ -594,12 +595,18 @@
       try{
         await navigator.clipboard.writeText(lastMd);
         copyNote.style.display = "block";
-        copyNote.textContent = "✅ Copié ! Tu peux coller ça dans Notion / Slack / Google Doc.";
+        copyNote.textContent = "✅ Copié !";
       }catch(e){
         copyNote.style.display = "block";
         copyNote.textContent = "❌ Impossible de copier (autorisation navigateur).";
       }
     };
+
+    async function readJsonOrText(r){
+      const text = await r.text();
+      try { return { json: JSON.parse(text), text }; }
+      catch(e){ return { json: null, text }; }
+    }
 
     btn.onclick = async () => {
       const token = document.getElementById("token").value.trim();
@@ -611,76 +618,111 @@
       lastMd = "";
       copyNote.style.display = "none";
 
-      // reset display
-      pretty.style.display = "none";
       rawWrap.style.display = "block";
-      showRawBtn.textContent = "Afficher JSON brut";
+      pretty.style.display = "none";
+      toggleBtn.textContent = "Afficher rendu lisible";
       out.textContent = "Loading...";
 
       try {
         if (endpoint === "health") {
           const r = await fetch(API_BASE + "/health");
-          const data = await r.json();
-          lastJson = data;
-
+          const { json, text } = await readJsonOrText(r);
+          lastJson = json || { raw: text };
           setStatus(r.ok, `GET /health — HTTP ${r.status}`);
-          showRaw(JSON.stringify(data, null, 2));
+          showRaw();
           return;
         }
 
         if (!token) {
           setStatus(false, "Token manquant (X-Auth-Token).");
-          showRaw("❌ Token manquant (X-Auth-Token).");
+          lastJson = { error: "Token manquant (X-Auth-Token)." };
+          showRaw();
           return;
         }
 
-        const r = await fetch(API_BASE + "/playbook/blueprint/v2", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Auth-Token": token
-          },
-          body: JSON.stringify({
-            video_id: videoId,
-            baseline_lookback: 30,
-            vertical: "saas",
-            goal: "leads",
-            language: "fr"
-          })
-        });
-
-        const text = await r.text();
-
-        // try parse json
-        let parsed = null;
-        try { parsed = JSON.parse(text); } catch(e) {}
-
-        if (!r.ok) {
-          setStatus(false, `POST /playbook/blueprint/v2 — HTTP ${r.status}`);
-          showRaw(`HTTP ${r.status}\n\n${text}`);
+        if (endpoint === "me") {
+          const r = await fetch(API_BASE + "/user/me", { headers: { "X-Auth-Token": token } });
+          const { json, text } = await readJsonOrText(r);
+          lastJson = json || { raw: text };
+          setStatus(r.ok, `GET /user/me — HTTP ${r.status}`);
+          showRaw();
           return;
         }
 
-        lastJson = parsed || { raw: text };
-        setStatus(true, `POST /playbook/blueprint/v2 — HTTP ${r.status}`);
+        if (endpoint === "blueprint_v2") {
+          const r = await fetch(API_BASE + "/playbook/blueprint/v2", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-Auth-Token": token },
+            body: JSON.stringify({
+              video_id: videoId,
+              baseline_lookback: 30,
+              vertical: "saas",
+              goal: "leads",
+              language: "fr"
+            })
+          });
 
-        // rendu lisible si json
-        if (parsed && typeof parsed === "object") {
-          lastMd = toMarkdown(parsed);
-          renderPretty(parsed);
-          showPretty();
-          showRawBtn.textContent = "Afficher JSON brut";
-        } else {
-          showRaw(`HTTP ${r.status}\n\n${text}`);
+          const { json, text } = await readJsonOrText(r);
+          lastJson = json || { raw: text };
+
+          if (!r.ok) {
+            setStatus(false, `POST /playbook/blueprint/v2 — HTTP ${r.status}`);
+            showRaw();
+            return;
+          }
+
+          setStatus(true, `POST /playbook/blueprint/v2 — HTTP ${r.status}`);
+
+          if (json && typeof json === "object") {
+            lastMd = toMarkdown(json);
+            renderPretty(json);
+            showPretty();
+          } else {
+            showRaw();
+          }
+          return;
+        }
+
+        if (endpoint === "premium_pack") {
+          const r = await fetch(API_BASE + "/premium/pack", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-Auth-Token": token },
+            body: JSON.stringify({
+              seed_video_id: videoId,
+              timeframe_days: 30,
+              baseline_lookback: 30,
+              business: {
+                vertical: "saas",
+                goal: "leads",
+                audience: "founders",
+                language: "fr",
+                region: "FR"
+              },
+              cadence: { shorts_per_week: 5, longs_per_month: 4 }
+            })
+          });
+
+          const { json, text } = await readJsonOrText(r);
+          lastJson = json || { raw: text };
+
+          if (!r.ok) {
+            setStatus(false, `POST /premium/pack — HTTP ${r.status}`);
+            showRaw();
+            return;
+          }
+
+          setStatus(true, `POST /premium/pack — HTTP ${r.status}`);
+          showRaw(); // premium pack = gros JSON, on laisse brut
+          return;
         }
 
       } catch (e) {
         setStatus(false, "Erreur réseau / CORS");
-        showRaw("❌ Erreur: " + (e && e.message ? e.message : String(e)));
+        lastJson = { error: String(e && e.message ? e.message : e) };
+        showRaw();
       }
     };
   </script>
 
 </body>
 </html>
-
