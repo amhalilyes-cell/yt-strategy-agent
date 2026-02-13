@@ -4,6 +4,14 @@
     "buildCommand": null,
     "outputDirectory": ".",
     "routes": [
-      { "src": "/(.*)", "dest": "/index.html" }
+      {
+        "src": "/api/(.*)",
+        "dest": "https://yt-strategy-agent.onrender.com/$1"
+      },
+      {
+        "src": "/(.*)",
+        "dest": "/index.html"
+      }
     ]
   }
+  
