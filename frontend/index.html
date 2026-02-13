@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YT Strategy Agent — Colle un lien, repars avec une stratégie</title>
+
+  <style>
+    :root{
+      --bg:#0f0f0f;
+      --panel:#161616;
+      --panel2:#111;
+      --border:#222;
+      --muted:#d1d1d1;
+      --muted2:#a9a9a9;
+      --accent:#00e5ff;
+      --accent2:#0077ff;
+      --danger:#ff4d4d;
+      --ok:#35f28b;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    body {
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: #ffffff;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: auto;
+      padding: 56px 20px;
+    }
+
+    h1, h2, h3 { line-height: 1.15; margin: 0; }
+    h1 { font-size: 3rem; margin-bottom: 14px; letter-spacing: -0.02em; }
+    h2 { font-size: 2rem; margin-top: 50px; margin-bottom: 12px; }
+    h3 { font-size: 1.15rem; margin-bottom: 10px; }
+    p { color: var(--muted); font-size: 1.05rem; margin: 10px 0 0; }
+    .muted { color: var(--muted2); }
+    .highlight { color: var(--accent); }
+
+    .card {
+      background: var(--panel);
+      border-radius: 14px;
+      padding: 24px;
+      margin-top: 18px;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .cta {
+      margin-top: 44px;
+      padding: 34px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #000;
+      border-radius: 16px;
+      text-align: center;
+    }
+    .cta h2 { margin-top: 0; }
+    .cta p { color: #000; }
+
+    .btn {
+      display: inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      margin-top: 18px;
+      padding: 14px 22px;
+      background: #000;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 800;
+      border: 0;
+      cursor: pointer;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn.secondary {
+      background: #1b1b1b;
+      color: #fff;
+      border: 1px solid #2b2b2b;
+      font-weight: 750;
+    }
+    .btn:active { transform: translateY(1px); }
+
+    .input {
+      width: 100%;
+      padding: 14px 14px;
+      border-radius: 12px;
+      border: 1px solid #333;
+      background: #0f0f0f;
+      color: #fff;
+      margin-top: 10px;
+      box-sizing: border-box;
+      outline: none;
+      font-size: 1rem;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 16px;
+    }
+    @media (min-width: 900px){
+      .row { grid-template-columns: 1fr 1fr; }
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #2b2b2b;
+      background:#0b0b0b;
+      font-family: var(--mono);
+      font-size:0.9rem;
+      color:#ddd;
+    }
+    .pill.ok{ border-color: rgba(53,242,139,0.35); color: var(--ok); }
+    .pill.bad{ border-color: rgba(255,77,77,0.35); color: var(--danger); }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 18px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight: 900;
+      letter-spacing:-0.02em;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:999px;background:var(--accent);
+      box-shadow: 0 0 14px rgba(0,229,255,0.45);
+    }
+
+    .notice{
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0b0b0b;
+      color: #eaeaea;
+    }
+    .notice.error{
+      border-color: rgba(255,77,77,0.35);
+      color: #ffd0d0;
+    }
+    .notice.ok{
+      border-color: rgba(53,242,139,0.35);
+      color: #caffdf;
+    }
+
+    /* Result (pretty blueprint) */
+    .hr{ height:1px; background:#1d1d1d; margin:16px 0; }
+
+    .sectionTitle{
+      margin-top: 6px;
+      font-size: 1.05rem;
+      font-weight: 900;
+    }
+    .bullets{
+      margin:8px 0 0;
+      padding-left: 18px;
+    }
+    .bullets li{
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    .tag{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      background:#0f0f0f;
+      border:1px solid #2a2a2a;
+      color:#e8e8e8;
+      font-size:0.9rem;
+      margin-right:8px;
+      margin-top:8px;
+    }
+
+    .hidden{ display:none !important; }
+    footer {
+      margin-top: 70px;
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- TOP BAR (shown in app states) -->
+    <div id="topbar" class="topbar hidden">
+      <div class="brand"><span class="dot"></span> YT Strategy Agent</div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <span id="trialPill" class="pill">—</span>
+        <button id="logoutBtn" class="btn secondary" type="button">Se déconnecter</button>
+      </div>
+    </div>
+
+    <!-- ============ VIEW: LANDING ============ -->
+    <section id="viewLanding">
+      <h1>
+        Colle un lien YouTube.<br/>
+        On te dit <span class="highlight">quoi refaire</span>… et quoi arrêter.
+      </h1>
+      <p>
+        YT Strategy Agent analyse tes vidéos et te livre un plan d’action clair
+        pour générer <strong>des leads & des ventes</strong> (pas des vues vanity).
+      </p>
+
+      <div class="cta">
+        <h2>Analyse ta première vidéo</h2>
+        <p>Essai gratuit 7 jours — aucune carte requise.</p>
+        <button id="startBtn" class="btn" type="button">Analyser ma vidéo YouTube</button>
+      </div>
+
+      <h2>Ce que tu reçois</h2>
+      <div class="card">
+        <ul class="bullets">
+          <li><strong>Verdict immédiat</strong> : outlier ou non</li>
+          <li><strong>Baseline réelle</strong> : la moyenne qui compte</li>
+          <li><strong>Blueprint précis</strong> : hook, structure, CTA</li>
+          <li><strong>Kill rules</strong> : quand arrêter / quand scaler</li>
+          <li><strong>Idées réplicables</strong> : 3 à 5 angles actionnables</li>
+        </ul>
+      </div>
+
+      <footer>© 2026 — YT Strategy Agent</footer>
+    </section>
+
+    <!-- ============ VIEW: LOGIN ============ -->
+    <section id="viewLogin" class="hidden">
+      <h2>Accède à ton analyse</h2>
+      <p>Entre ton email. On t’envoie un lien pour te connecter.</p>
+
+      <div class="card">
+        <label class="muted">Email</label>
+        <input id="emailInput" class="input" placeholder="ton@email.com" autocomplete="email" />
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+          <button id="sendLinkBtn" class="btn primary" type="button">Recevoir mon lien</button>
+          <button id="backToLandingBtn" class="btn secondary" type="button">Retour</button>
+        </div>
+
+        <div id="loginNotice" class="notice hidden" style="margin-top:14px;"></div>
+        <div class="muted" style="margin-top:12px;">Essai gratuit 7 jours — aucune carte requise.</div>
+      </div>
+
+      <footer>© 2026 — YT Strategy Agent</footer>
+    </section>
+
+    <!-- ============ VIEW: APP (ANALYZE) ============ -->
+    <section id="viewApp" class="hidden">
+
+      <h2>Analyse une de tes vidéos YouTube</h2>
+      <p>Colle le lien d’une de tes vidéos. On te dira exactement quoi répliquer et quoi arrêter.</p>
+
+      <div class="card">
+        <label class="muted">Lien YouTube</label>
+        <input id="ytUrlInput" class="input" placeholder="https://youtube.com/watch?v=xxxx" />
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+          <button id="analyzeBtn" class="btn primary" type="button">Analyser cette vidéo</button>
+          <button id="copyBtn" class="btn secondary" type="button">Copier la stratégie</button>
+        </div>
+
+        <div id="appNotice" class="notice hidden" style="margin-top:14px;"></div>
+
+        <div id="loadingBox" class="notice hidden" style="margin-top:14px;">
+          <span class="pill" id="loadingPill">ANALYSE</span>
+          <span id="loadingText" style="margin-left:10px;">—</span>
+        </div>
+      </div>
+
+      <div id="resultCard" class="card hidden" style="margin-top:18px; background:#0b0b0b; border:1px solid var(--border);">
+        <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <div>
+            <div class="sectionTitle">Verdict</div>
+            <div id="verdictText" style="font-weight:900; font-size:1.1rem; margin-top:6px;">—</div>
+            <div id="baselineText" class="muted" style="margin-top:6px;">—</div>
+          </div>
+          <div style="text-align:right;">
+            <span class="tag" id="tagFormat">format: —</span>
+            <span class="tag" id="tagDuration">durée: —</span>
+            <span class="tag" id="tagConfidence">confidence: —</span>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <div>
+            <div class="sectionTitle">Hook</div>
+            <div class="muted">Structure et exemples</div>
+            <ul class="bullets" id="hookList"></ul>
+          </div>
+          <div>
+            <div class="sectionTitle">Kill rules</div>
+            <div class="muted">Quand arrêter / re-edit</div>
+            <ul class="bullets" id="killList"></ul>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div>
+          <div class="sectionTitle">Structure</div>
+          <div class="muted">Plan de la vidéo</div>
+          <ul class="bullets" id="structureList"></ul>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <div>
+            <div class="sectionTitle">Règles de publication</div>
+            <div class="muted">Simple à appliquer</div>
+            <ul class="bullets" id="postingList"></ul>
+          </div>
+          <div>
+            <div class="sectionTitle">Idées réplicables</div>
+            <div class="muted">3 à 5 angles</div>
+            <ul class="bullets" id="ideasList"></ul>
+          </div>
+        </div>
+      </div>
+
+      <footer>© 2026 — YT Strategy Agent</footer>
+    </section>
+
+    <!-- ============ VIEW: PAYWALL ============ -->
+    <section id="viewPaywall" class="hidden">
+      <h2>Ton essai gratuit est terminé</h2>
+      <p>
+        Tu peux toujours accéder à ton compte, mais l’analyse de nouvelles vidéos est bloquée.<br/>
+        Pour continuer :
+      </p>
+
+      <div class="card">
+        <h3 style="margin:0;">Débloquer l’accès</h3>
+        <p class="muted" style="margin-top:8px;">
+          Reprends tes analyses, sans friction, avec le même format “décision + blueprint”.
+        </p>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+          <a class="btn primary" id="subscribeBtn" href="#" target="_blank" rel="noreferrer">S’abonner</a>
+          <button class="btn secondary" id="paywallLogoutBtn" type="button">Se déconnecter</button>
+        </div>
+
+        <div class="muted" style="margin-top:10px;">
+          (Tu branches ici ton lien Stripe Checkout / pricing.)
+        </div>
+      </div>
+
+      <footer>© 2026 — YT Strategy Agent</footer>
+    </section>
+
+  </div>
+
+  <script>
+    /*********************************************************
+     * CONFIG
+     *********************************************************/
+    const API_BASE = "https://yt-strategy-agent.onrender.com";
+
+    // Endpoints à brancher côté backend (magic link + session)
+    // - POST /auth/magic/request  { email }
+    // - GET  /auth/me             -> { authenticated, trial_active, trial_until, user_email, ... }
+    // - POST /auth/logout
+    //
+    // Si tu n’as pas encore ça côté backend, l’UI est prête.
+    const ENDPOINTS = {
+      requestMagicLink: API_BASE + "/auth/magic/request",
+      me: API_BASE + "/auth/me",
+      logout: API_BASE + "/auth/logout",
+
+      // Ton endpoint existant :
+      blueprintV2: API_BASE + "/playbook/blueprint/v2",
+    };
+
+    // Lien paiement (Stripe checkout, pricing page, etc.)
+    const SUBSCRIBE_URL = "https://ton-lien-stripe-checkout.com"; // TODO
+    document.getElementById("subscribeBtn").href = SUBSCRIBE_URL;
+
+    /*********************************************************
+     * UI HELPERS
+     *********************************************************/
+    const views = {
+      landing: document.getElementById("viewLanding"),
+      login: document.getElementById("viewLogin"),
+      app: document.getElementById("viewApp"),
+      paywall: document.getElementById("viewPaywall"),
+    };
+    const topbar = document.getElementById("topbar");
+    const trialPill = document.getElementById("trialPill");
+
+    function showView(name){
+      Object.values(views).forEach(v => v.classList.add("hidden"));
+      views[name].classList.remove("hidden");
+
+      // topbar seulement quand connecté (app/paywall)
+      const showTop = (name === "app" || name === "paywall");
+      topbar.classList.toggle("hidden", !showTop);
+    }
+
+    function setTrialPill({trialActive, trialUntil}){
+      trialPill.classList.remove("ok","bad");
+      if (trialActive){
+        trialPill.classList.add("ok");
+        trialPill.textContent = trialUntil ? `TRIAL • jusqu’au ${trialUntil}` : "TRIAL • actif";
+      } else {
+        trialPill.classList.add("bad");
+        trialPill.textContent = "TRIAL • terminé";
+      }
+    }
+
+    function setNotice(el, type, text){
+      el.classList.remove("hidden","error","ok");
+      if (type === "error") el.classList.add("error");
+      if (type === "ok") el.classList.add("ok");
+      el.textContent = text;
+    }
+    function hideNotice(el){
+      el.classList.add("hidden");
+      el.textContent = "";
+      el.classList.remove("error","ok");
+    }
+
+    /*********************************************************
+     * YOUTUBE URL -> VIDEO ID
+     *********************************************************/
+    function extractVideoId(url){
+      try{
+        const u = new URL(url.trim());
+        // youtu.be/VIDEOID
+        if (u.hostname.includes("youtu.be")){
+          const id = u.pathname.replace("/", "").trim();
+          return id || null;
+        }
+        // youtube.com/watch?v=VIDEOID
+        const v = u.searchParams.get("v");
+        if (v) return v.trim();
+
+        // youtube.com/shorts/VIDEOID
+        const parts = u.pathname.split("/").filter(Boolean);
+        const shortsIndex = parts.indexOf("shorts");
+        if (shortsIndex >= 0 && parts[shortsIndex+1]) return parts[shortsIndex+1].trim();
+
+        // youtube.com/embed/VIDEOID
+        const embedIndex = parts.indexOf("embed");
+        if (embedIndex >= 0 && parts[embedIndex+1]) return parts[embedIndex+1].trim();
+
+        return null;
+      } catch(e){
+        return null;
+      }
+    }
+
+    /*********************************************************
+     * AUTH (magic link) + SESSION
+     *********************************************************/
+    async function apiReadJson(r){
+      const text = await r.text();
+      try { return { json: JSON.parse(text), text }; }
+      catch(e){ return { json: null, text }; }
+    }
+
+    // Ici on suppose que le backend gère la session via cookie httpOnly (le plus propre)
+    async function fetchMe(){
+      try{
+        const r = await fetch(ENDPOINTS.me, { credentials: "include" });
+        const { json } = await apiReadJson(r);
+        if (!r.ok || !json) return { authenticated: false };
+        return json;
+      }catch(e){
+        return { authenticated: false };
+      }
+    }
+
+    async function requestMagicLink(email){
+      const r = await fetch(ENDPOINTS.requestMagicLink, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      const { json, text } = await apiReadJson(r);
+      return { ok: r.ok, status: r.status, json, text };
+    }
+
+    async function logout(){
+      try{
+        await fetch(ENDPOINTS.logout, { method:"POST", credentials:"include" });
+      }catch(e){}
+    }
+
+    /*********************************************************
+     * BLUEPRINT (no tokens, no endpoints visible)
+     *********************************************************/
+    let lastMarkdown = "";
+
+    function arr(x){ return Array.isArray(x) ? x : []; }
+    function unwrapBlueprint(obj){
+      if (!obj || typeof obj !== "object") return obj;
+      if (obj.blueprint && typeof obj.blueprint === "object") return obj.blueprint;
+      if (obj.data && typeof obj.data === "object") return obj.data;
+      return obj;
+    }
+
+    function toMarkdown(bpRaw){
+      const bp = unwrapBlueprint(bpRaw);
+      if (!bp || typeof bp !== "object") return "";
+
+      const title = bp.title || "(sans titre)";
+      const format = bp.format || bp.format_type || bp.type || "-";
+      const duration = Array.isArray(bp.duration_target_seconds) ? bp.duration_target_seconds.join("–") + "s" : "-";
+
+      const hook = bp.hook_structure || {};
+      const posting = bp.posting_strategy || {};
+      const kill = bp.kill_conditions || {};
+      const ideas = arr(bp.ideas);
+      const content = arr(bp.content_structure);
+
+      let md = `# Blueprint — ${title}\n\n`;
+      md += `**Format:** ${format}\n\n`;
+      md += `**Durée cible:** ${duration}\n\n`;
+
+      md += `## Hook\n`;
+      if (hook.type) md += `- Type: ${hook.type}\n`;
+      if (hook.first_1s_goal) md += `- Goal 1s: ${hook.first_1s_goal}\n`;
+      arr(hook.avoid).forEach(a => md += `- À éviter: ${a}\n`);
+      const ex = arr(hook.examples || hook.examples_fr);
+      if (ex.length){
+        md += `\n**Exemples:**\n`;
+        ex.forEach(e => md += `- ${e}\n`);
+      }
+
+      md += `\n## Structure\n`;
+      content.forEach(s => md += `- ${s}\n`);
+
+      md += `\n## Règles de publication\n`;
+      Object.entries(posting).forEach(([k,v]) => {
+        md += `- ${k}: ${typeof v === "string" ? v : JSON.stringify(v)}\n`;
+      });
+
+      md += `\n## Kill rules\n`;
+      Object.entries(kill).forEach(([k,v]) => {
+        md += `- ${k}: ${String(v)}\n`;
+      });
+
+      if (ideas.length){
+        md += `\n## Idées\n`;
+        ideas.slice(0,5).forEach(it => {
+          if (typeof it === "string") { md += `- ${it}\n`; return; }
+          const idea = it.idea || it.title || "(idée)";
+          md += `- **${idea}**\n`;
+          if (it.hook_template) md += `  - Hook: ${it.hook_template}\n`;
+          if (Array.isArray(it.hook_variations)) it.hook_variations.slice(0,2).forEach(h => md += `  - Var: ${h}\n`);
+          if (it.note) md += `  - Note: ${it.note}\n`;
+        });
+      }
+
+      return md.trim();
+    }
+
+    function renderList(el, items){
+      el.innerHTML = "";
+      const list = arr(items);
+      if (!list.length){
+        el.innerHTML = `<li class="muted">—</li>`;
+        return;
+      }
+      list.forEach(x => {
+        const li = document.createElement("li");
+        li.textContent = String(x);
+        el.appendChild(li);
+      });
+    }
+
+    function renderKvList(el, obj){
+      el.innerHTML = "";
+      const entries = obj && typeof obj === "object" ? Object.entries(obj) : [];
+      if (!entries.length){
+        el.innerHTML = `<li class="muted">—</li>`;
+        return;
+      }
+      entries.forEach(([k,v]) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>${k} :</strong> ${typeof v === "string" ? v : JSON.stringify(v)}`;
+        el.appendChild(li);
+      });
+    }
+
+    function computeVerdictFromBlueprint(bp){
+      // Si ton backend renvoie déjà un verdict/outlier_score, tu peux l’afficher direct.
+      // Ici : fallback simple (ne fait pas de promesse mensongère)
+      const confidence = bp.confidence || bp.confidence_level || null;
+      if (confidence && typeof confidence === "string") {
+        if (confidence.toLowerCase().includes("high")) return "Fort signal : tu peux répliquer ce format.";
+        if (confidence.toLowerCase().includes("low")) return "Signal faible : à tester, sans en faire une priorité.";
+      }
+      return "Décision : applique le blueprint ci-dessous et mesure sur ta baseline.";
+    }
+
+    /*********************************************************
+     * WIRING (buttons + routing)
+     *********************************************************/
+    const startBtn = document.getElementById("startBtn");
+    const backToLandingBtn = document.getElementById("backToLandingBtn");
+    const sendLinkBtn = document.getElementById("sendLinkBtn");
+    const emailInput = document.getElementById("emailInput");
+    const loginNotice = document.getElementById("loginNotice");
+
+    const logoutBtn = document.getElementById("logoutBtn");
+    const paywallLogoutBtn = document.getElementById("paywallLogoutBtn");
+
+    const ytUrlInput = document.getElementById("ytUrlInput");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const appNotice = document.getElementById("appNotice");
+
+    const loadingBox = document.getElementById("loadingBox");
+    const loadingText = document.getElementById("loadingText");
+
+    const resultCard = document.getElementById("resultCard");
+    const verdictText = document.getElementById("verdictText");
+    const baselineText = document.getElementById("baselineText");
+    const tagFormat = document.getElementById("tagFormat");
+    const tagDuration = document.getElementById("tagDuration");
+    const tagConfidence = document.getElementById("tagConfidence");
+
+    const hookList = document.getElementById("hookList");
+    const killList = document.getElementById("killList");
+    const structureList = document.getElementById("structureList");
+    const postingList = document.getElementById("postingList");
+    const ideasList = document.getElementById("ideasList");
+
+    const LOADING_STEPS = [
+      "Analyse de la vidéo…",
+      "Comparaison avec la performance moyenne…",
+      "Détection des signaux forts…",
+      "Génération de la stratégie…"
+    ];
+    let loadingTimer = null;
+
+    function startLoading(){
+      loadingBox.classList.remove("hidden");
+      let i = 0;
+      loadingText.textContent = LOADING_STEPS[i];
+      loadingTimer = setInterval(() => {
+        i = (i + 1) % LOADING_STEPS.length;
+        loadingText.textContent = LOADING_STEPS[i];
+      }, 1100);
+    }
+    function stopLoading(){
+      loadingBox.classList.add("hidden");
+      if (loadingTimer) clearInterval(loadingTimer);
+      loadingTimer = null;
+    }
+
+    startBtn.onclick = () => showView("login");
+    backToLandingBtn.onclick = () => showView("landing");
+
+    logoutBtn.onclick = async () => {
+      await logout();
+      showView("landing");
+    };
+    paywallLogoutBtn.onclick = async () => {
+      await logout();
+      showView("landing");
+    };
+
+    sendLinkBtn.onclick = async () => {
+      hideNotice(loginNotice);
+      const email = emailInput.value.trim();
+      if (!email || !email.includes("@")){
+        setNotice(loginNotice, "error", "Entre un email valide.");
+        return;
+      }
+
+      sendLinkBtn.disabled = true;
+      sendLinkBtn.textContent = "Envoi…";
+
+      // Si endpoints pas encore prêts => message propre
+      try{
+        const res = await requestMagicLink(email);
+        if (!res.ok){
+          setNotice(loginNotice, "error", "Impossible d’envoyer le lien. Réessaie dans une minute.");
+        } else {
+          setNotice(loginNotice, "ok", "Lien envoyé. Vérifie ta boîte mail (et tes spams).");
+        }
+      }catch(e){
+        setNotice(loginNotice, "error", "Impossible d’envoyer le lien. Réessaie.");
+      } finally {
+        sendLinkBtn.disabled = false;
+        sendLinkBtn.textContent = "Recevoir mon lien";
+      }
+    };
+
+    analyzeBtn.onclick = async () => {
+      hideNotice(appNotice);
+      resultCard.classList.add("hidden");
+      lastMarkdown = "";
+
+      const url = ytUrlInput.value.trim();
+      const videoId = extractVideoId(url);
+
+      if (!url){
+        setNotice(appNotice, "error", "Colle un lien YouTube.");
+        return;
+      }
+      if (!videoId){
+        setNotice(appNotice, "error", "Lien invalide. Colle un lien YouTube complet (watch / shorts / youtu.be).");
+        return;
+      }
+
+      analyzeBtn.disabled = true;
+      analyzeBtn.textContent = "Analyse…";
+      startLoading();
+
+      try{
+        // Ton backend attend video_id : on l’envoie (no tokens exposed)
+        const r = await fetch(ENDPOINTS.blueprintV2, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            video_id: videoId,
+            baseline_lookback: 30,
+            vertical: "saas",
+            goal: "leads",
+            language: "fr"
+          })
+        });
+
+        const { json } = await apiReadJson(r);
+
+        if (!r.ok || !json){
+          // messages “humains”
+          if (r.status === 401 || r.status === 403){
+            setNotice(appNotice, "error", "Ta session a expiré. Reconnecte-toi.");
+            showView("login");
+            return;
+          }
+          if (r.status === 402){
+            // paywall (si tu choisis 402 pour trial fini)
+            showView("paywall");
+            return;
+          }
+          if (r.status === 404){
+            setNotice(appNotice, "error", "Cette vidéo n’est pas encore analysable. Essaie une autre vidéo.");
+            return;
+          }
+          setNotice(appNotice, "error", "Impossible d’analyser cette vidéo. Réessaie dans une minute.");
+          return;
+        }
+
+        const bp = unwrapBlueprint(json);
+
+        // tags
+        const format = bp.format || bp.format_type || "-";
+        const duration = Array.isArray(bp.duration_target_seconds) ? bp.duration_target_seconds.join("–") + "s" : "-";
+        const confidence = bp.confidence || bp.confidence_level || "-";
+
+        tagFormat.textContent = `format: ${format}`;
+        tagDuration.textContent = `durée: ${duration}`;
+        tagConfidence.textContent = `confidence: ${confidence}`;
+
+        // verdict (fallback)
+        verdictText.textContent = computeVerdictFromBlueprint(bp);
+
+        // baseline (si ton backend renvoie des champs baseline_* tu les mets ici)
+        baselineText.textContent = "—";
+
+        // hook
+        const hook = bp.hook_structure || {};
+        const hookLines = [];
+        if (hook.type) hookLines.push(`Type : ${hook.type}`);
+        if (hook.first_1s_goal) hookLines.push(`Objectif (1ère seconde) : ${hook.first_1s_goal}`);
+        if (Array.isArray(hook.avoid) && hook.avoid.length) hookLines.push(`À éviter : ${hook.avoid.join(", ")}`);
+        const examples = arr(hook.examples || hook.examples_fr).slice(0,4);
+        examples.forEach(e => hookLines.push(`Exemple : ${e}`));
+        renderList(hookList, hookLines);
+
+        // kill
+        renderKvList(killList, bp.kill_conditions || {});
+
+        // structure
+        renderList(structureList, arr(bp.content_structure));
+
+        // posting
+        renderKvList(postingList, bp.posting_strategy || {});
+
+        // ideas (limit 5)
+        const ideas = arr(bp.ideas).slice(0,5).map(it => {
+          if (typeof it === "string") return it;
+          const idea = it.idea || it.title || "Idée";
+          const hookT = it.hook_template ? ` — Hook: ${it.hook_template}` : "";
+          return `${idea}${hookT}`;
+        });
+        renderList(ideasList, ideas);
+
+        lastMarkdown = toMarkdown(json);
+        resultCard.classList.remove("hidden");
+
+      } catch(e){
+        setNotice(appNotice, "error", "Problème réseau. Réessaie.");
+      } finally {
+        stopLoading();
+        analyzeBtn.disabled = false;
+        analyzeBtn.textContent = "Analyser cette vidéo";
+      }
+    };
+
+    copyBtn.onclick = async () => {
+      hideNotice(appNotice);
+      if (!lastMarkdown){
+        setNotice(appNotice, "error", "Rien à copier pour l’instant. Lance une analyse.");
+        return;
+      }
+      try{
+        await navigator.clipboard.writeText(lastMarkdown);
+        setNotice(appNotice, "ok", "Copié ✅");
+      }catch(e){
+        setNotice(appNotice, "error", "Impossible de copier (permission navigateur).");
+      }
+    };
+
+    /*********************************************************
+     * BOOT: decide view based on session + trial
+     *********************************************************/
+    async function boot(){
+      // Par défaut, landing
+      showView("landing");
+
+      // Tente de détecter une session existante
+      const me = await fetchMe();
+      if (!me || !me.authenticated) return;
+
+      // Format trial_until lisible si possible
+      const trialActive = !!me.trial_active;
+      let trialUntil = null;
+      if (me.trial_until){
+        try{
+          const d = new Date(me.trial_until);
+          trialUntil = d.toLocaleDateString("fr-FR");
+        }catch(e){}
+      }
+
+      setTrialPill({ trialActive, trialUntil });
+
+      // routing trial
+      if (trialActive) showView("app");
+      else showView("paywall");
+    }
+
+    boot();
+  </script>
+</body>
+</html>
+
