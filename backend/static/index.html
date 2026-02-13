@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>YT Strategy Agent — Trouve tes vidéos x10+</title>
+  <title>YT Strategy Agent — Colle un lien, repars avec une stratégie</title>
+
   <style>
     :root{
       --bg:#0f0f0f;
@@ -18,6 +19,7 @@
       --ok:#35f28b;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
+
     body {
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
@@ -26,17 +28,21 @@
       color: #ffffff;
       line-height: 1.6;
     }
+
     .container {
       max-width: 980px;
       margin: auto;
-      padding: 60px 20px;
+      padding: 56px 20px;
     }
-    h1, h2, h3 { line-height: 1.2; margin: 0; }
-    h1 { font-size: 3rem; margin-bottom: 18px; }
-    h2 { font-size: 2rem; margin-top: 60px; margin-bottom: 14px; }
-    h3 { font-size: 1.2rem; margin-bottom: 10px; }
+
+    h1, h2, h3 { line-height: 1.15; margin: 0; }
+    h1 { font-size: 3rem; margin-bottom: 14px; letter-spacing: -0.02em; }
+    h2 { font-size: 2rem; margin-top: 50px; margin-bottom: 12px; }
+    h3 { font-size: 1.15rem; margin-bottom: 10px; }
     p { color: var(--muted); font-size: 1.05rem; margin: 10px 0 0; }
+    .muted { color: var(--muted2); }
     .highlight { color: var(--accent); }
+
     .card {
       background: var(--panel);
       border-radius: 14px;
@@ -44,12 +50,10 @@
       margin-top: 18px;
       border: 1px solid rgba(255,255,255,0.04);
     }
-    ul { padding-left: 20px; margin: 8px 0 0; }
-    li { margin-bottom: 10px; color: var(--muted); }
-    ol { margin: 8px 0 0; color: var(--muted); }
+
     .cta {
-      margin-top: 60px;
-      padding: 40px;
+      margin-top: 44px;
+      padding: 34px;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       color: #000;
       border-radius: 16px;
@@ -57,95 +61,58 @@
     }
     .cta h2 { margin-top: 0; }
     .cta p { color: #000; }
-    .cta a {
-      display: inline-block;
+
+    .btn {
+      display: inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
       margin-top: 18px;
-      padding: 14px 28px;
+      padding: 14px 22px;
       background: #000;
       color: #fff;
       text-decoration: none;
       border-radius: 10px;
-      font-weight: 700;
-    }
-    footer {
-      margin-top: 80px;
-      text-align: center;
-      color: #666;
-      font-size: 0.9rem;
+      font-weight: 800;
+      border: 0;
+      cursor: pointer;
     }
 
-    /* ===== API tester styles ===== */
-    .api {
-      margin-top: 14px;
-      padding: 24px;
-      border-radius: 14px;
-      background: var(--panel2);
-      border: 1px solid var(--border);
+    .btn.primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn.secondary {
+      background: #1b1b1b;
       color: #fff;
+      border: 1px solid #2b2b2b;
+      font-weight: 750;
     }
-    .api label {
-      display: block;
-      margin-top: 10px;
-      font-size: 0.95rem;
-      color: var(--muted);
-    }
-    .api input, .api select {
+    .btn:active { transform: translateY(1px); }
+
+    .input {
       width: 100%;
-      padding: 12px;
-      border-radius: 10px;
+      padding: 14px 14px;
+      border-radius: 12px;
       border: 1px solid #333;
       background: #0f0f0f;
       color: #fff;
-      margin-top: 8px;
+      margin-top: 10px;
       box-sizing: border-box;
       outline: none;
+      font-size: 1rem;
     }
+
     .row {
       display: grid;
       grid-template-columns: 1fr;
       gap: 14px;
+      margin-top: 16px;
     }
     @media (min-width: 900px){
       .row { grid-template-columns: 1fr 1fr; }
     }
 
-    .btns {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 14px;
-    }
-    .api button {
-      padding: 12px 18px;
-      border-radius: 10px;
-      border: 0;
-      font-weight: 800;
-      cursor: pointer;
-      background: var(--accent);
-      color: #000;
-    }
-    .api button.secondary{
-      background: #1b1b1b;
-      color: #fff;
-      border: 1px solid #2b2b2b;
-      font-weight: 700;
-    }
-    .api button:active { transform: translateY(1px); }
-
-    .hint { margin-top: 8px; font-size: 0.95rem; color: var(--muted2); }
-    .small { font-size: 0.9rem; color: var(--muted2); margin-top: 6px; }
-
-    /* ===== Output ===== */
-    .statusline{
-      margin-top: 12px;
-      font-family: var(--mono);
-      font-size: 0.92rem;
-      color: var(--muted2);
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-    }
     .pill{
       display:inline-flex;
       align-items:center;
@@ -161,44 +128,59 @@
     .pill.ok{ border-color: rgba(53,242,139,0.35); color: var(--ok); }
     .pill.bad{ border-color: rgba(255,77,77,0.35); color: var(--danger); }
 
-    .outWrap{
-      margin-top: 14px;
-      padding: 16px;
-      border-radius: 12px;
-      background: #0b0b0b;
-      border: 1px solid var(--border);
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 18px;
     }
-    .outPre{
-      margin:0;
-      font-family: var(--mono);
-      font-size: 0.92rem;
-      color: #d1d1d1;
-      white-space: pre-wrap;
-      word-break: break-word;
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight: 900;
+      letter-spacing:-0.02em;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:999px;background:var(--accent);
+      box-shadow: 0 0 14px rgba(0,229,255,0.45);
     }
 
-    /* ===== Blueprint UI ===== */
-    .grid2{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:14px;
-      margin-top:14px;
+    .notice{
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0b0b0b;
+      color: #eaeaea;
     }
-    @media (min-width: 900px){
-      .grid2{ grid-template-columns: 1fr 1fr; }
+    .notice.error{
+      border-color: rgba(255,77,77,0.35);
+      color: #ffd0d0;
     }
-    .kv{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
+    .notice.ok{
+      border-color: rgba(53,242,139,0.35);
+      color: #caffdf;
     }
-    .kv .k{ color: var(--muted2); font-size:0.9rem; }
-    .kv .v{ color:#fff; font-weight:800; }
-    .hr{
-      height:1px;
-      background:#1d1d1d;
-      margin:16px 0;
+
+    /* Result (pretty blueprint) */
+    .hr{ height:1px; background:#1d1d1d; margin:16px 0; }
+
+    .sectionTitle{
+      margin-top: 6px;
+      font-size: 1.05rem;
+      font-weight: 900;
     }
+    .bullets{
+      margin:8px 0 0;
+      padding-left: 18px;
+    }
+    .bullets li{
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
     .tag{
       display:inline-block;
       padding:6px 10px;
@@ -210,168 +192,332 @@
       margin-right:8px;
       margin-top:8px;
     }
-    .sectionTitle{
-      margin-top: 8px;
-      font-size: 1.05rem;
-      font-weight: 900;
-    }
-    .muted{
-      color: var(--muted2);
-      font-size:0.95rem;
-    }
-    .bullets{
-      margin:8px 0 0;
-      padding-left: 18px;
-    }
-    .bullets li{
-      margin-bottom: 8px;
-      color: var(--muted);
-    }
-    .copyNote{
-      color: var(--muted2);
+
+    .hidden{ display:none !important; }
+    footer {
+      margin-top: 70px;
+      text-align: center;
+      color: #666;
       font-size: 0.9rem;
-      margin-top: 10px;
     }
   </style>
 </head>
+
 <body>
-
   <div class="container">
-    <!-- HERO -->
-    <h1>
-      Trouve les vidéos <span class="highlight">x10 à x30</span><br>
-      avant de perdre ton temps à poster
-    </h1>
-    <p>
-      YT Strategy Agent analyse ta chaîne YouTube business et te dit
-      <strong>quoi publier</strong>, <strong>quoi répliquer</strong> et
-      <strong>quoi kill</strong> pour générer plus de leads.
-    </p>
 
-    <!-- COMMENT ÇA MARCHE -->
-    <h2>Comment ça marche</h2>
-    <div class="card">
-      <ol>
-        <li>On analyse ta chaîne et ta baseline réelle</li>
-        <li>On détecte tes vidéos outliers (x5, x10, x30)</li>
-        <li>On génère le blueprint exact à répliquer (hook, structure, CTA)</li>
-      </ol>
+    <!-- TOP BAR (shown in app states) -->
+    <div id="topbar" class="topbar hidden">
+      <div class="brand"><span class="dot"></span> YT Strategy Agent</div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <span id="trialPill" class="pill">—</span>
+        <button id="logoutBtn" class="btn secondary" type="button">Se déconnecter</button>
+      </div>
     </div>
 
-    <!-- CE QUE TU OBTIENS -->
-    <h2>Ce que tu obtiens</h2>
-    <div class="card">
-      <ul>
-        <li>Détection automatique des vidéos qui surperforment</li>
-        <li>Blueprints long-form orientés <strong>leads & ventes</strong></li>
-        <li>Kill rules claires (quand arrêter / quand scaler)</li>
-        <li>Idées de vidéos réplicables sur 14 jours</li>
-        <li>Décisions basées sur la data, pas l’ego</li>
-      </ul>
-    </div>
-
-    <!-- CTA -->
-    <div class="cta">
-      <h2>Demander un accès</h2>
+    <!-- ============ VIEW: LANDING ============ -->
+    <section id="viewLanding">
+      <h1>
+        Colle un lien YouTube.<br/>
+        On te dit <span class="highlight">quoi refaire</span>… et quoi arrêter.
+      </h1>
       <p>
-        Tu es créateur business (SaaS, Agency, OFM, Ecom) ?<br>
-        Je t’analyse une vidéo et je te montre le blueprint.
+        YT Strategy Agent analyse tes vidéos et te livre un plan d’action clair
+        pour générer <strong>des leads & des ventes</strong> (pas des vues vanity).
       </p>
-      <a href="https://tally.so/r/xxxxxx" target="_blank" rel="noreferrer">Demander un audit gratuit</a>
-      <div class="small">Remplace le lien Tally par ton vrai lien.</div>
-    </div>
 
-    <!-- API TEST -->
-    <h2>Tester l’API</h2>
-    <div class="card api">
-      <div class="hint">Ça appelle ton backend Render : <strong id="apiBaseText"></strong></div>
+      <div class="cta">
+        <h2>Analyse ta première vidéo</h2>
+        <p>Essai gratuit 7 jours — aucune carte requise.</p>
+        <button id="startBtn" class="btn" type="button">Analyser ma vidéo YouTube</button>
+      </div>
 
-      <div class="row">
-        <div>
-          <label>Token (X-Auth-Token)</label>
-          <input id="token" placeholder="colle ton token ici (ex: l31nUVaC_...)" />
-          <div class="small">Astuce: colle ton token admin si tu veux éviter les 401.</div>
+      <h2>Ce que tu reçois</h2>
+      <div class="card">
+        <ul class="bullets">
+          <li><strong>Verdict immédiat</strong> : outlier ou non</li>
+          <li><strong>Baseline réelle</strong> : la moyenne qui compte</li>
+          <li><strong>Blueprint précis</strong> : hook, structure, CTA</li>
+          <li><strong>Kill rules</strong> : quand arrêter / quand scaler</li>
+          <li><strong>Idées réplicables</strong> : 3 à 5 angles actionnables</li>
+        </ul>
+      </div>
+
+      <footer>© 2026 — YT Strategy Agent</footer>
+    </section>
+
+    <!-- ============ VIEW: LOGIN ============ -->
+    <section id="viewLogin" class="hidden">
+      <h2>Accède à ton analyse</h2>
+      <p>Entre ton email. On t’envoie un lien pour te connecter.</p>
+
+      <div class="card">
+        <label class="muted">Email</label>
+        <input id="emailInput" class="input" placeholder="ton@email.com" autocomplete="email" />
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+          <button id="sendLinkBtn" class="btn primary" type="button">Recevoir mon lien</button>
+          <button id="backToLandingBtn" class="btn secondary" type="button">Retour</button>
         </div>
 
-        <div>
-          <label>Endpoint</label>
-          <select id="endpoint">
-            <option value="health">GET /health (test simple)</option>
-            <option value="me">GET /user/me (auth)</option>
-            <option value="blueprint_v2">POST /playbook/blueprint/v2 (blueprint lisible)</option>
-            <option value="premium_pack">POST /premium/pack (premium)</option>
-          </select>
+        <div id="loginNotice" class="notice hidden" style="margin-top:14px;"></div>
+        <div class="muted" style="margin-top:12px;">Essai gratuit 7 jours — aucune carte requise.</div>
+      </div>
 
-          <label style="margin-top:10px;">Video ID (YouTube)</label>
-          <input id="videoId" value="nV6OzZ6ToXE" />
-          <div class="small">⚠️ Pour blueprint/premium : la vidéo doit exister en DB (trend/bootstrap d’abord).</div>
+      <footer>© 2026 — YT Strategy Agent</footer>
+    </section>
+
+    <!-- ============ VIEW: APP (ANALYZE) ============ -->
+    <section id="viewApp" class="hidden">
+
+      <h2>Analyse une de tes vidéos YouTube</h2>
+      <p>Colle le lien d’une de tes vidéos. On te dira exactement quoi répliquer et quoi arrêter.</p>
+
+      <div class="card">
+        <label class="muted">Lien YouTube</label>
+        <input id="ytUrlInput" class="input" placeholder="https://youtube.com/watch?v=xxxx" />
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+          <button id="analyzeBtn" class="btn primary" type="button">Analyser cette vidéo</button>
+          <button id="copyBtn" class="btn secondary" type="button">Copier la stratégie</button>
+        </div>
+
+        <div id="appNotice" class="notice hidden" style="margin-top:14px;"></div>
+
+        <div id="loadingBox" class="notice hidden" style="margin-top:14px;">
+          <span class="pill" id="loadingPill">ANALYSE</span>
+          <span id="loadingText" style="margin-left:10px;">—</span>
         </div>
       </div>
 
-      <div class="btns">
-        <button id="run">Tester</button>
-        <button id="copyMd" class="secondary" type="button">Copier en Markdown</button>
-        <button id="toggleView" class="secondary" type="button">Afficher JSON brut</button>
+      <div id="resultCard" class="card hidden" style="margin-top:18px; background:#0b0b0b; border:1px solid var(--border);">
+        <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <div>
+            <div class="sectionTitle">Verdict</div>
+            <div id="verdictText" style="font-weight:900; font-size:1.1rem; margin-top:6px;">—</div>
+            <div id="baselineText" class="muted" style="margin-top:6px;">—</div>
+          </div>
+          <div style="text-align:right;">
+            <span class="tag" id="tagFormat">format: —</span>
+            <span class="tag" id="tagDuration">durée: —</span>
+            <span class="tag" id="tagConfidence">confidence: —</span>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <div>
+            <div class="sectionTitle">Hook</div>
+            <div class="muted">Structure et exemples</div>
+            <ul class="bullets" id="hookList"></ul>
+          </div>
+          <div>
+            <div class="sectionTitle">Kill rules</div>
+            <div class="muted">Quand arrêter / re-edit</div>
+            <ul class="bullets" id="killList"></ul>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div>
+          <div class="sectionTitle">Structure</div>
+          <div class="muted">Plan de la vidéo</div>
+          <ul class="bullets" id="structureList"></ul>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <div>
+            <div class="sectionTitle">Règles de publication</div>
+            <div class="muted">Simple à appliquer</div>
+            <ul class="bullets" id="postingList"></ul>
+          </div>
+          <div>
+            <div class="sectionTitle">Idées réplicables</div>
+            <div class="muted">3 à 5 angles</div>
+            <ul class="bullets" id="ideasList"></ul>
+          </div>
+        </div>
       </div>
 
-      <div class="statusline" id="statusline">
-        <span class="pill" id="pill">READY</span>
-        <span id="statusText" class="muted">—</span>
+      <footer>© 2026 — YT Strategy Agent</footer>
+    </section>
+
+    <!-- ============ VIEW: PAYWALL ============ -->
+    <section id="viewPaywall" class="hidden">
+      <h2>Ton essai gratuit est terminé</h2>
+      <p>
+        Tu peux toujours accéder à ton compte, mais l’analyse de nouvelles vidéos est bloquée.<br/>
+        Pour continuer :
+      </p>
+
+      <div class="card">
+        <h3 style="margin:0;">Débloquer l’accès</h3>
+        <p class="muted" style="margin-top:8px;">
+          Reprends tes analyses, sans friction, avec le même format “décision + blueprint”.
+        </p>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+          <a class="btn primary" id="subscribeBtn" href="#" target="_blank" rel="noreferrer">S’abonner</a>
+          <button class="btn secondary" id="paywallLogoutBtn" type="button">Se déconnecter</button>
+        </div>
+
+        <div class="muted" style="margin-top:10px;">
+          (Tu branches ici ton lien Stripe Checkout / pricing.)
+        </div>
       </div>
 
-      <!-- rendu lisible -->
-      <div id="pretty" class="outWrap" style="display:none;"></div>
+      <footer>© 2026 — YT Strategy Agent</footer>
+    </section>
 
-      <!-- JSON brut -->
-      <div id="rawWrap" class="outWrap">
-        <pre id="out" class="outPre">Résultat ici…</pre>
-      </div>
-
-      <div class="copyNote" id="copyNote" style="display:none;"></div>
-    </div>
-
-    <footer>
-      © 2026 — YT Strategy Agent
-    </footer>
   </div>
 
   <script>
-    // ✅ Change juste ça si tu changes Render
+    /*********************************************************
+     * CONFIG
+     *********************************************************/
     const API_BASE = "https://yt-strategy-agent.onrender.com";
-    document.getElementById("apiBaseText").textContent = API_BASE;
 
-    const btn = document.getElementById("run");
-    const out = document.getElementById("out");
+    // Endpoints à brancher côté backend (magic link + session)
+    // - POST /auth/magic/request  { email }
+    // - GET  /auth/me             -> { authenticated, trial_active, trial_until, user_email, ... }
+    // - POST /auth/logout
+    //
+    // Si tu n’as pas encore ça côté backend, l’UI est prête.
+    const ENDPOINTS = {
+      requestMagicLink: API_BASE + "/auth/magic/request",
+      me: API_BASE + "/auth/me",
+      logout: API_BASE + "/auth/logout",
 
-    const pretty = document.getElementById("pretty");
-    const rawWrap = document.getElementById("rawWrap");
-    const toggleBtn = document.getElementById("toggleView");
-    const copyBtn = document.getElementById("copyMd");
-    const copyNote = document.getElementById("copyNote");
+      // Ton endpoint existant :
+      blueprintV2: API_BASE + "/playbook/blueprint/v2",
+    };
 
-    const pill = document.getElementById("pill");
-    const statusText = document.getElementById("statusText");
+    // Lien paiement (Stripe checkout, pricing page, etc.)
+    const SUBSCRIBE_URL = "https://ton-lien-stripe-checkout.com"; // TODO
+    document.getElementById("subscribeBtn").href = SUBSCRIBE_URL;
 
-    let lastJson = null;
-    let lastMd = "";
+    /*********************************************************
+     * UI HELPERS
+     *********************************************************/
+    const views = {
+      landing: document.getElementById("viewLanding"),
+      login: document.getElementById("viewLogin"),
+      app: document.getElementById("viewApp"),
+      paywall: document.getElementById("viewPaywall"),
+    };
+    const topbar = document.getElementById("topbar");
+    const trialPill = document.getElementById("trialPill");
 
-    function setStatus(ok, text){
-      pill.classList.remove("ok","bad");
-      if (ok === true) { pill.classList.add("ok"); pill.textContent = "OK"; }
-      else if (ok === false) { pill.classList.add("bad"); pill.textContent = "ERROR"; }
-      else { pill.textContent = "READY"; }
-      statusText.textContent = text || "—";
+    function showView(name){
+      Object.values(views).forEach(v => v.classList.add("hidden"));
+      views[name].classList.remove("hidden");
+
+      // topbar seulement quand connecté (app/paywall)
+      const showTop = (name === "app" || name === "paywall");
+      topbar.classList.toggle("hidden", !showTop);
     }
 
-    function esc(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;");
+    function setTrialPill({trialActive, trialUntil}){
+      trialPill.classList.remove("ok","bad");
+      if (trialActive){
+        trialPill.classList.add("ok");
+        trialPill.textContent = trialUntil ? `TRIAL • jusqu’au ${trialUntil}` : "TRIAL • actif";
+      } else {
+        trialPill.classList.add("bad");
+        trialPill.textContent = "TRIAL • terminé";
+      }
     }
+
+    function setNotice(el, type, text){
+      el.classList.remove("hidden","error","ok");
+      if (type === "error") el.classList.add("error");
+      if (type === "ok") el.classList.add("ok");
+      el.textContent = text;
+    }
+    function hideNotice(el){
+      el.classList.add("hidden");
+      el.textContent = "";
+      el.classList.remove("error","ok");
+    }
+
+    /*********************************************************
+     * YOUTUBE URL -> VIDEO ID
+     *********************************************************/
+    function extractVideoId(url){
+      try{
+        const u = new URL(url.trim());
+        // youtu.be/VIDEOID
+        if (u.hostname.includes("youtu.be")){
+          const id = u.pathname.replace("/", "").trim();
+          return id || null;
+        }
+        // youtube.com/watch?v=VIDEOID
+        const v = u.searchParams.get("v");
+        if (v) return v.trim();
+
+        // youtube.com/shorts/VIDEOID
+        const parts = u.pathname.split("/").filter(Boolean);
+        const shortsIndex = parts.indexOf("shorts");
+        if (shortsIndex >= 0 && parts[shortsIndex+1]) return parts[shortsIndex+1].trim();
+
+        // youtube.com/embed/VIDEOID
+        const embedIndex = parts.indexOf("embed");
+        if (embedIndex >= 0 && parts[embedIndex+1]) return parts[embedIndex+1].trim();
+
+        return null;
+      } catch(e){
+        return null;
+      }
+    }
+
+    /*********************************************************
+     * AUTH (magic link) + SESSION
+     *********************************************************/
+    async function apiReadJson(r){
+      const text = await r.text();
+      try { return { json: JSON.parse(text), text }; }
+      catch(e){ return { json: null, text }; }
+    }
+
+    // Ici on suppose que le backend gère la session via cookie httpOnly (le plus propre)
+    async function fetchMe(){
+      try{
+        const r = await fetch(ENDPOINTS.me, { credentials: "include" });
+        const { json } = await apiReadJson(r);
+        if (!r.ok || !json) return { authenticated: false };
+        return json;
+      }catch(e){
+        return { authenticated: false };
+      }
+    }
+
+    async function requestMagicLink(email){
+      const r = await fetch(ENDPOINTS.requestMagicLink, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      const { json, text } = await apiReadJson(r);
+      return { ok: r.ok, status: r.status, json, text };
+    }
+
+    async function logout(){
+      try{
+        await fetch(ENDPOINTS.logout, { method:"POST", credentials:"include" });
+      }catch(e){}
+    }
+
+    /*********************************************************
+     * BLUEPRINT (no tokens, no endpoints visible)
+     *********************************************************/
+    let lastMarkdown = "";
+
     function arr(x){ return Array.isArray(x) ? x : []; }
-
     function unwrapBlueprint(obj){
       if (!obj || typeof obj !== "object") return obj;
       if (obj.blueprint && typeof obj.blueprint === "object") return obj.blueprint;
@@ -384,8 +530,8 @@
       if (!bp || typeof bp !== "object") return "";
 
       const title = bp.title || "(sans titre)";
-      const format = bp.format || bp.format_type || bp.type || "";
-      const duration = Array.isArray(bp.duration_target_seconds) ? bp.duration_target_seconds.join("–") : "";
+      const format = bp.format || bp.format_type || bp.type || "-";
+      const duration = Array.isArray(bp.duration_target_seconds) ? bp.duration_target_seconds.join("–") + "s" : "-";
 
       const hook = bp.hook_structure || {};
       const posting = bp.posting_strategy || {};
@@ -394,10 +540,8 @@
       const content = arr(bp.content_structure);
 
       let md = `# Blueprint — ${title}\n\n`;
-      if (format || duration){
-        md += `**Format:** ${format || "-"}  \n`;
-        md += `**Durée cible:** ${duration ? duration + "s" : "-"}\n\n`;
-      }
+      md += `**Format:** ${format}\n\n`;
+      md += `**Durée cible:** ${duration}\n\n`;
 
       md += `## Hook\n`;
       if (hook.type) md += `- Type: ${hook.type}\n`;
@@ -412,7 +556,7 @@
       md += `\n## Structure\n`;
       content.forEach(s => md += `- ${s}\n`);
 
-      md += `\n## Posting\n`;
+      md += `\n## Règles de publication\n`;
       Object.entries(posting).forEach(([k,v]) => {
         md += `- ${k}: ${typeof v === "string" ? v : JSON.stringify(v)}\n`;
       });
@@ -424,12 +568,12 @@
 
       if (ideas.length){
         md += `\n## Idées\n`;
-        ideas.forEach(it => {
+        ideas.slice(0,5).forEach(it => {
           if (typeof it === "string") { md += `- ${it}\n`; return; }
           const idea = it.idea || it.title || "(idée)";
           md += `- **${idea}**\n`;
           if (it.hook_template) md += `  - Hook: ${it.hook_template}\n`;
-          if (Array.isArray(it.hook_variations)) it.hook_variations.forEach(h => md += `  - Hook var: ${h}\n`);
+          if (Array.isArray(it.hook_variations)) it.hook_variations.slice(0,2).forEach(h => md += `  - Var: ${h}\n`);
           if (it.note) md += `  - Note: ${it.note}\n`;
         });
       }
@@ -437,292 +581,299 @@
       return md.trim();
     }
 
-    function renderPretty(bpRaw){
-      const bp = unwrapBlueprint(bpRaw);
-      pretty.innerHTML = "";
-      copyNote.style.display = "none";
-      copyNote.textContent = "";
+    function renderList(el, items){
+      el.innerHTML = "";
+      const list = arr(items);
+      if (!list.length){
+        el.innerHTML = `<li class="muted">—</li>`;
+        return;
+      }
+      list.forEach(x => {
+        const li = document.createElement("li");
+        li.textContent = String(x);
+        el.appendChild(li);
+      });
+    }
 
-      if (!bp || typeof bp !== "object"){
-        pretty.innerHTML = `<pre class="outPre">Impossible d'afficher (réponse non JSON).</pre>`;
+    function renderKvList(el, obj){
+      el.innerHTML = "";
+      const entries = obj && typeof obj === "object" ? Object.entries(obj) : [];
+      if (!entries.length){
+        el.innerHTML = `<li class="muted">—</li>`;
+        return;
+      }
+      entries.forEach(([k,v]) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>${k} :</strong> ${typeof v === "string" ? v : JSON.stringify(v)}`;
+        el.appendChild(li);
+      });
+    }
+
+    function computeVerdictFromBlueprint(bp){
+      // Si ton backend renvoie déjà un verdict/outlier_score, tu peux l’afficher direct.
+      // Ici : fallback simple (ne fait pas de promesse mensongère)
+      const confidence = bp.confidence || bp.confidence_level || null;
+      if (confidence && typeof confidence === "string") {
+        if (confidence.toLowerCase().includes("high")) return "Fort signal : tu peux répliquer ce format.";
+        if (confidence.toLowerCase().includes("low")) return "Signal faible : à tester, sans en faire une priorité.";
+      }
+      return "Décision : applique le blueprint ci-dessous et mesure sur ta baseline.";
+    }
+
+    /*********************************************************
+     * WIRING (buttons + routing)
+     *********************************************************/
+    const startBtn = document.getElementById("startBtn");
+    const backToLandingBtn = document.getElementById("backToLandingBtn");
+    const sendLinkBtn = document.getElementById("sendLinkBtn");
+    const emailInput = document.getElementById("emailInput");
+    const loginNotice = document.getElementById("loginNotice");
+
+    const logoutBtn = document.getElementById("logoutBtn");
+    const paywallLogoutBtn = document.getElementById("paywallLogoutBtn");
+
+    const ytUrlInput = document.getElementById("ytUrlInput");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const appNotice = document.getElementById("appNotice");
+
+    const loadingBox = document.getElementById("loadingBox");
+    const loadingText = document.getElementById("loadingText");
+
+    const resultCard = document.getElementById("resultCard");
+    const verdictText = document.getElementById("verdictText");
+    const baselineText = document.getElementById("baselineText");
+    const tagFormat = document.getElementById("tagFormat");
+    const tagDuration = document.getElementById("tagDuration");
+    const tagConfidence = document.getElementById("tagConfidence");
+
+    const hookList = document.getElementById("hookList");
+    const killList = document.getElementById("killList");
+    const structureList = document.getElementById("structureList");
+    const postingList = document.getElementById("postingList");
+    const ideasList = document.getElementById("ideasList");
+
+    const LOADING_STEPS = [
+      "Analyse de la vidéo…",
+      "Comparaison avec la performance moyenne…",
+      "Détection des signaux forts…",
+      "Génération de la stratégie…"
+    ];
+    let loadingTimer = null;
+
+    function startLoading(){
+      loadingBox.classList.remove("hidden");
+      let i = 0;
+      loadingText.textContent = LOADING_STEPS[i];
+      loadingTimer = setInterval(() => {
+        i = (i + 1) % LOADING_STEPS.length;
+        loadingText.textContent = LOADING_STEPS[i];
+      }, 1100);
+    }
+    function stopLoading(){
+      loadingBox.classList.add("hidden");
+      if (loadingTimer) clearInterval(loadingTimer);
+      loadingTimer = null;
+    }
+
+    startBtn.onclick = () => showView("login");
+    backToLandingBtn.onclick = () => showView("landing");
+
+    logoutBtn.onclick = async () => {
+      await logout();
+      showView("landing");
+    };
+    paywallLogoutBtn.onclick = async () => {
+      await logout();
+      showView("landing");
+    };
+
+    sendLinkBtn.onclick = async () => {
+      hideNotice(loginNotice);
+      const email = emailInput.value.trim();
+      if (!email || !email.includes("@")){
+        setNotice(loginNotice, "error", "Entre un email valide.");
         return;
       }
 
-      const title = bp.title || "(sans titre)";
-      const format = bp.format || "-";
-      const duration = Array.isArray(bp.duration_target_seconds) ? bp.duration_target_seconds.join("–") + "s" : "-";
-      const confidence = bp.confidence || bp.confidence_level || "-";
+      sendLinkBtn.disabled = true;
+      sendLinkBtn.textContent = "Envoi…";
 
-      const hook = bp.hook_structure || {};
-      const content = arr(bp.content_structure);
-      const posting = bp.posting_strategy || {};
-      const kill = bp.kill_conditions || {};
-      const ideas = arr(bp.ideas);
+      // Si endpoints pas encore prêts => message propre
+      try{
+        const res = await requestMagicLink(email);
+        if (!res.ok){
+          setNotice(loginNotice, "error", "Impossible d’envoyer le lien. Réessaie dans une minute.");
+        } else {
+          setNotice(loginNotice, "ok", "Lien envoyé. Vérifie ta boîte mail (et tes spams).");
+        }
+      }catch(e){
+        setNotice(loginNotice, "error", "Impossible d’envoyer le lien. Réessaie.");
+      } finally {
+        sendLinkBtn.disabled = false;
+        sendLinkBtn.textContent = "Recevoir mon lien";
+      }
+    };
 
-      const shift = (bp.format_shift || {});
-      const shiftDetected = !!shift.detected;
-      const shiftDims = arr(shift.dimensions);
+    analyzeBtn.onclick = async () => {
+      hideNotice(appNotice);
+      resultCard.classList.add("hidden");
+      lastMarkdown = "";
 
-      const hookAvoid = arr(hook.avoid);
-      const hookExamples = arr(hook.examples || hook.examples_fr);
+      const url = ytUrlInput.value.trim();
+      const videoId = extractVideoId(url);
 
-      const tags = [];
-      if (bp.vertical) tags.push(`vertical: ${bp.vertical}`);
-      if (bp.goal) tags.push(`goal: ${bp.goal}`);
-      if (bp.language) tags.push(`lang: ${bp.language}`);
-      if (shiftDetected) tags.push(`⚠ format shift`);
+      if (!url){
+        setNotice(appNotice, "error", "Colle un lien YouTube.");
+        return;
+      }
+      if (!videoId){
+        setNotice(appNotice, "error", "Lien invalide. Colle un lien YouTube complet (watch / shorts / youtu.be).");
+        return;
+      }
 
-      pretty.innerHTML = `
-        <div class="grid2">
-          <div class="card" style="margin-top:0;background:#0b0b0b;border:1px solid var(--border);">
-            <div class="kv">
-              <div class="k">Titre</div>
-              <div class="v">${esc(title)}</div>
-            </div>
-            <div style="margin-top:10px;">
-              <span class="tag">format: ${esc(format)}</span>
-              <span class="tag">durée: ${esc(duration)}</span>
-              <span class="tag">confidence: ${esc(confidence)}</span>
-              ${tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}
-            </div>
-          </div>
+      analyzeBtn.disabled = true;
+      analyzeBtn.textContent = "Analyse…";
+      startLoading();
 
-          <div class="card" style="margin-top:0;background:#0b0b0b;border:1px solid var(--border);">
-            <div class="sectionTitle">Posting strategy</div>
-            <div class="muted">Règles simples à suivre</div>
-            <ul class="bullets">
-              ${Object.keys(posting).length ? Object.entries(posting).map(([k,v]) =>
-                `<li><strong>${esc(k)}:</strong> ${esc(typeof v === "string" ? v : JSON.stringify(v))}</li>`
-              ).join("") : `<li class="muted">—</li>`}
-            </ul>
-          </div>
-        </div>
+      try{
+        // Ton backend attend video_id : on l’envoie (no tokens exposed)
+        const r = await fetch(ENDPOINTS.blueprintV2, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            video_id: videoId,
+            baseline_lookback: 30,
+            vertical: "saas",
+            goal: "leads",
+            language: "fr"
+          })
+        });
 
-        <div class="hr"></div>
+        const { json } = await apiReadJson(r);
 
-        <div class="grid2">
-          <div class="card" style="margin-top:0;background:#0b0b0b;border:1px solid var(--border);">
-            <div class="sectionTitle">Hook</div>
-            <div class="muted">Structure et exemples</div>
-            <ul class="bullets">
-              ${hook.type ? `<li><strong>Type:</strong> ${esc(hook.type)}</li>` : ""}
-              ${hook.first_1s_goal ? `<li><strong>Goal 1s:</strong> ${esc(hook.first_1s_goal)}</li>` : ""}
-              ${hookAvoid.length ? `<li><strong>À éviter:</strong> ${esc(hookAvoid.join(", "))}</li>` : ""}
-            </ul>
-            ${hookExamples.length ? `
-              <div style="margin-top:12px;" class="muted"><strong>Exemples</strong></div>
-              <ul class="bullets">
-                ${hookExamples.slice(0,6).map(x => `<li>${esc(x)}</li>`).join("")}
-              </ul>
-            ` : `<div class="muted" style="margin-top:10px;">(Pas d’exemples)</div>`}
-          </div>
+        if (!r.ok || !json){
+          // messages “humains”
+          if (r.status === 401 || r.status === 403){
+            setNotice(appNotice, "error", "Ta session a expiré. Reconnecte-toi.");
+            showView("login");
+            return;
+          }
+          if (r.status === 402){
+            // paywall (si tu choisis 402 pour trial fini)
+            showView("paywall");
+            return;
+          }
+          if (r.status === 404){
+            setNotice(appNotice, "error", "Cette vidéo n’est pas encore analysable. Essaie une autre vidéo.");
+            return;
+          }
+          setNotice(appNotice, "error", "Impossible d’analyser cette vidéo. Réessaie dans une minute.");
+          return;
+        }
 
-          <div class="card" style="margin-top:0;background:#0b0b0b;border:1px solid var(--border);">
-            <div class="sectionTitle">Kill rules</div>
-            <div class="muted">Quand tuer / re-edit</div>
-            <ul class="bullets">
-              ${Object.keys(kill).length ? Object.entries(kill).map(([k,v]) =>
-                `<li><strong>${esc(k)}:</strong> ${esc(String(v))}</li>`
-              ).join("") : `<li class="muted">—</li>`}
-            </ul>
-          </div>
-        </div>
+        const bp = unwrapBlueprint(json);
 
-        <div class="hr"></div>
+        // tags
+        const format = bp.format || bp.format_type || "-";
+        const duration = Array.isArray(bp.duration_target_seconds) ? bp.duration_target_seconds.join("–") + "s" : "-";
+        const confidence = bp.confidence || bp.confidence_level || "-";
 
-        <div class="card" style="margin-top:0;background:#0b0b0b;border:1px solid var(--border);">
-          <div class="sectionTitle">Content structure</div>
-          <div class="muted">Plan de la vidéo</div>
-          <ul class="bullets">
-            ${content.length ? content.map(s => `<li>${esc(s)}</li>`).join("") : `<li class="muted">—</li>`}
-          </ul>
-        </div>
+        tagFormat.textContent = `format: ${format}`;
+        tagDuration.textContent = `durée: ${duration}`;
+        tagConfidence.textContent = `confidence: ${confidence}`;
 
-        <div class="hr"></div>
+        // verdict (fallback)
+        verdictText.textContent = computeVerdictFromBlueprint(bp);
 
-        <div class="grid2">
-          <div class="card" style="margin-top:0;background:#0b0b0b;border:1px solid var(--border);">
-            <div class="sectionTitle">Idées</div>
-            <div class="muted">Angles réplicables</div>
-            <ul class="bullets">
-              ${ideas.length ? ideas.slice(0,10).map(it => {
-                if (typeof it === "string") return `<li>${esc(it)}</li>`;
-                const idea = it.idea || it.title || "(idée)";
-                const hookT = it.hook_template ? `<div class="muted" style="margin-top:6px;">Hook: <span style="color:#eaeaea">${esc(it.hook_template)}</span></div>` : "";
-                const note = it.note ? `<div class="muted" style="margin-top:6px;">Note: ${esc(it.note)}</div>` : "";
-                const hv = Array.isArray(it.hook_variations) ? it.hook_variations.slice(0,3).map(h => `<div class="muted" style="margin-top:6px;">Var: ${esc(h)}</div>`).join("") : "";
-                return `<li><strong>${esc(idea)}</strong>${hookT}${hv}${note}</li>`;
-              }).join("") : `<li class="muted">—</li>`}
-            </ul>
-          </div>
+        // baseline (si ton backend renvoie des champs baseline_* tu les mets ici)
+        baselineText.textContent = "—";
 
-          <div class="card" style="margin-top:0;background:#0b0b0b;border:1px solid var(--border);">
-            <div class="sectionTitle">Format shift</div>
-            <div class="muted">Détection</div>
-            <ul class="bullets">
-              <li><strong>Detected:</strong> ${shiftDetected ? "true" : "false"}</li>
-              <li><strong>Dimensions:</strong> ${shiftDims.length ? esc(shiftDims.join(", ")) : "—"}</li>
-            </ul>
-          </div>
-        </div>
-      `;
-    }
+        // hook
+        const hook = bp.hook_structure || {};
+        const hookLines = [];
+        if (hook.type) hookLines.push(`Type : ${hook.type}`);
+        if (hook.first_1s_goal) hookLines.push(`Objectif (1ère seconde) : ${hook.first_1s_goal}`);
+        if (Array.isArray(hook.avoid) && hook.avoid.length) hookLines.push(`À éviter : ${hook.avoid.join(", ")}`);
+        const examples = arr(hook.examples || hook.examples_fr).slice(0,4);
+        examples.forEach(e => hookLines.push(`Exemple : ${e}`));
+        renderList(hookList, hookLines);
 
-    function showRaw(){
-      rawWrap.style.display = "block";
-      pretty.style.display = "none";
-      out.textContent = JSON.stringify(lastJson ?? {}, null, 2);
-      toggleBtn.textContent = "Afficher rendu lisible";
-    }
+        // kill
+        renderKvList(killList, bp.kill_conditions || {});
 
-    function showPretty(){
-      rawWrap.style.display = "none";
-      pretty.style.display = "block";
-      toggleBtn.textContent = "Afficher JSON brut";
-    }
+        // structure
+        renderList(structureList, arr(bp.content_structure));
 
-    toggleBtn.onclick = () => {
-      if (rawWrap.style.display === "none") showRaw();
-      else showPretty();
+        // posting
+        renderKvList(postingList, bp.posting_strategy || {});
+
+        // ideas (limit 5)
+        const ideas = arr(bp.ideas).slice(0,5).map(it => {
+          if (typeof it === "string") return it;
+          const idea = it.idea || it.title || "Idée";
+          const hookT = it.hook_template ? ` — Hook: ${it.hook_template}` : "";
+          return `${idea}${hookT}`;
+        });
+        renderList(ideasList, ideas);
+
+        lastMarkdown = toMarkdown(json);
+        resultCard.classList.remove("hidden");
+
+      } catch(e){
+        setNotice(appNotice, "error", "Problème réseau. Réessaie.");
+      } finally {
+        stopLoading();
+        analyzeBtn.disabled = false;
+        analyzeBtn.textContent = "Analyser cette vidéo";
+      }
     };
 
     copyBtn.onclick = async () => {
-      if (!lastMd) {
-        copyNote.style.display = "block";
-        copyNote.textContent = "❌ Rien à copier (génère d’abord un blueprint).";
+      hideNotice(appNotice);
+      if (!lastMarkdown){
+        setNotice(appNotice, "error", "Rien à copier pour l’instant. Lance une analyse.");
         return;
       }
       try{
-        await navigator.clipboard.writeText(lastMd);
-        copyNote.style.display = "block";
-        copyNote.textContent = "✅ Copié !";
+        await navigator.clipboard.writeText(lastMarkdown);
+        setNotice(appNotice, "ok", "Copié ✅");
       }catch(e){
-        copyNote.style.display = "block";
-        copyNote.textContent = "❌ Impossible de copier (autorisation navigateur).";
+        setNotice(appNotice, "error", "Impossible de copier (permission navigateur).");
       }
     };
 
-    async function readJsonOrText(r){
-      const text = await r.text();
-      try { return { json: JSON.parse(text), text }; }
-      catch(e){ return { json: null, text }; }
+    /*********************************************************
+     * BOOT: decide view based on session + trial
+     *********************************************************/
+    async function boot(){
+      // Par défaut, landing
+      showView("landing");
+
+      // Tente de détecter une session existante
+      const me = await fetchMe();
+      if (!me || !me.authenticated) return;
+
+      // Format trial_until lisible si possible
+      const trialActive = !!me.trial_active;
+      let trialUntil = null;
+      if (me.trial_until){
+        try{
+          const d = new Date(me.trial_until);
+          trialUntil = d.toLocaleDateString("fr-FR");
+        }catch(e){}
+      }
+
+      setTrialPill({ trialActive, trialUntil });
+
+      // routing trial
+      if (trialActive) showView("app");
+      else showView("paywall");
     }
 
-    btn.onclick = async () => {
-      const token = document.getElementById("token").value.trim();
-      const endpoint = document.getElementById("endpoint").value;
-      const videoId = document.getElementById("videoId").value.trim() || "nV6OzZ6ToXE";
-
-      setStatus(null, "Loading...");
-      lastJson = null;
-      lastMd = "";
-      copyNote.style.display = "none";
-
-      rawWrap.style.display = "block";
-      pretty.style.display = "none";
-      toggleBtn.textContent = "Afficher rendu lisible";
-      out.textContent = "Loading...";
-
-      try {
-        if (endpoint === "health") {
-          const r = await fetch(API_BASE + "/health");
-          const { json, text } = await readJsonOrText(r);
-          lastJson = json || { raw: text };
-          setStatus(r.ok, `GET /health — HTTP ${r.status}`);
-          showRaw();
-          return;
-        }
-
-        if (!token) {
-          setStatus(false, "Token manquant (X-Auth-Token).");
-          lastJson = { error: "Token manquant (X-Auth-Token)." };
-          showRaw();
-          return;
-        }
-
-        if (endpoint === "me") {
-          const r = await fetch(API_BASE + "/user/me", { headers: { "X-Auth-Token": token } });
-          const { json, text } = await readJsonOrText(r);
-          lastJson = json || { raw: text };
-          setStatus(r.ok, `GET /user/me — HTTP ${r.status}`);
-          showRaw();
-          return;
-        }
-
-        if (endpoint === "blueprint_v2") {
-          const r = await fetch(API_BASE + "/playbook/blueprint/v2", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-Auth-Token": token },
-            body: JSON.stringify({
-              video_id: videoId,
-              baseline_lookback: 30,
-              vertical: "saas",
-              goal: "leads",
-              language: "fr"
-            })
-          });
-
-          const { json, text } = await readJsonOrText(r);
-          lastJson = json || { raw: text };
-
-          if (!r.ok) {
-            setStatus(false, `POST /playbook/blueprint/v2 — HTTP ${r.status}`);
-            showRaw();
-            return;
-          }
-
-          setStatus(true, `POST /playbook/blueprint/v2 — HTTP ${r.status}`);
-
-          if (json && typeof json === "object") {
-            lastMd = toMarkdown(json);
-            renderPretty(json);
-            showPretty();
-          } else {
-            showRaw();
-          }
-          return;
-        }
-
-        if (endpoint === "premium_pack") {
-          const r = await fetch(API_BASE + "/premium/pack", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-Auth-Token": token },
-            body: JSON.stringify({
-              seed_video_id: videoId,
-              timeframe_days: 30,
-              baseline_lookback: 30,
-              business: {
-                vertical: "saas",
-                goal: "leads",
-                audience: "founders",
-                language: "fr",
-                region: "FR"
-              },
-              cadence: { shorts_per_week: 5, longs_per_month: 4 }
-            })
-          });
-
-          const { json, text } = await readJsonOrText(r);
-          lastJson = json || { raw: text };
-
-          if (!r.ok) {
-            setStatus(false, `POST /premium/pack — HTTP ${r.status}`);
-            showRaw();
-            return;
-          }
-
-          setStatus(true, `POST /premium/pack — HTTP ${r.status}`);
-          showRaw(); // premium pack = gros JSON, on laisse brut
-          return;
-        }
-
-      } catch (e) {
-        setStatus(false, "Erreur réseau / CORS");
-        lastJson = { error: String(e && e.message ? e.message : e) };
-        showRaw();
-      }
-    };
+    boot();
   </script>
-
 </body>
 </html>
+
