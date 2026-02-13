@@ -95,7 +95,7 @@ def saas_now():
 
 class MagicLoginReq(BaseModel):
     email: str
-
+    
 @app.post("/auth/magic/request")
 def auth_magic_request(payload: MagicLoginReq, response: Response):
     email = (payload.email or "").strip().lower()
@@ -117,10 +117,12 @@ def auth_magic_request(payload: MagicLoginReq, response: Response):
         value=session_id,
         httponly=True,
         samesite="none",
-        secure=True,
+        secure=True,   # en prod HTTPS ok
     )
 
-    return {"ok": True}
+    # ✅ au lieu de "lien envoyé", on dit "ok + redirect"
+    return {"ok": True, "redirect_to": "/app"}
+
 
 
 @app.get("/auth/me")
