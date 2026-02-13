@@ -4,11 +4,15 @@ import re
 import sqlite3
 import math
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
+from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
+import uuid
+
 from typing import List, Literal, Optional, Dict, Any, Tuple
 
-from fastapi import FastAPI, Header, HTTPException, Query
+
 from dotenv import load_dotenv
+
 from pydantic import BaseModel, Field
 
 from backend.youtube import search_videos, get_videos, YouTubeAPIError, YOUTUBE_API_BASE
@@ -77,6 +81,76 @@ app.add_middleware(
 def _startup():
     init_db()
 
+# =========================
+# SAAS AUTH (EMAIL + TRIAL 7J) — AJOUT ONLY
+# =========================
+SESSION_COOKIE = "ysa_session"
+TRIAL_DAYS = 7
+
+SESSIONS: Dict[str, str] = {}
+USERS_TRIAL: Dict[str, Dict[str, Any]] = {}
+
+def saas_now():
+    return datetime.utcnow()
+
+class MagicLoginReq(BaseModel):
+    email: str
+
+@app.post("/auth/magic/request")
+def auth_magic_request(payload: MagicLoginReq, response: Response):
+    email = (payload.email or "").strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="email is required")
+
+    if email not in USERS_TRIAL:
+        USERS_TRIAL[email] = {
+            "email": email,
+            "created_at": saas_now(),
+            "trial_until": saas_now() + timedelta(days=TRIAL_DAYS),
+        }
+
+    session_id = str(uuid.uuid4())
+    SESSIONS[session_id] = email
+
+    response.set_cookie(
+        key=SESSION_COOKIE,
+        value=session_id,
+        httponly=True,
+        samesite="none",
+        secure=True,
+    )
+
+    return {"ok": True}
+
+
+@app.get("/auth/me")
+def auth_me(request: Request):
+    session_id = request.cookies.get(SESSION_COOKIE)
+    if not session_id or session_id not in SESSIONS:
+        return {"authenticated": False}
+
+    email = SESSIONS[session_id]
+    user = USERS_TRIAL.get(email)
+    if not user:
+        return {"authenticated": False}
+
+    trial_active = saas_now() < user["trial_until"]
+
+    return {
+        "authenticated": True,
+        "email": email,
+        "trial_active": trial_active,
+        "trial_until": user["trial_until"].isoformat(),
+    }
+
+
+@app.post("/auth/logout")
+def auth_logout(request: Request, response: Response):
+    session_id = request.cookies.get(SESSION_COOKIE)
+    if session_id:
+        SESSIONS.pop(session_id, None)
+    response.delete_cookie(SESSION_COOKIE)
+    return {"ok": True}
 
 # -----------------------
 # Small safe helpers (IMPORTANT: prevent None crashes)
@@ -1344,6 +1418,28 @@ def playbook_blueprint_v2(req: BlueprintV2Req, x_auth_token: str | None = Header
         language=req.language,
     )
 
+# =========================
+# SAAS ENDPOINT — COOKIE + TRIAL (AJOUT ONLY)
+# =========================
+@app.post("/saas/playbook/blueprint/v2")
+def saas_playbook_blueprint_v2(req: BlueprintV2Req, request: Request):
+    session_id = request.cookies.get(SESSION_COOKIE)
+    if not session_id or session_id not in SESSIONS:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    email = SESSIONS[session_id]
+    user = USERS_TRIAL[email]
+
+    if saas_now() > user["trial_until"]:
+        raise HTTPException(status_code=402, detail="Trial expired")
+
+    return build_blueprint_v2(
+        video_id=req.video_id,
+        baseline_lookback=req.baseline_lookback,
+        vertical=req.vertical,
+        goal=req.goal,
+        language=req.language,
+    )
 
 # =========================================================
 # ✅ NEW: Premium "All-in-one" Pack (7/30/90 jours + business vertical)
