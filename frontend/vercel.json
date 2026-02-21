@@ -1,18 +1,9 @@
 {
     "version": 2,
-    "framework": null,
-    "buildCommand": null,
     "outputDirectory": ".",
-  
-    "rewrites": [
-      {
-        "source": "/api/(.*)",
-        "destination": "https://TON-BACKEND.onrender.com/$1"
-      }
-    ],
-  
     "routes": [
-      { "src": "/app", "dest": "/app.html" },
-      { "src": "/(.*)", "dest": "/index.html" }
+      { "src": "^/api/(.*)", "dest": "https://yt-strategy-agent.onrender.com" },
+      { "src": "^/app$", "dest": "/app.html" },
+      { "src": "^(.*)$", "dest": "/index.html" }
     ]
   }
