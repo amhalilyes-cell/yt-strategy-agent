@@ -1,36 +1,31 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>YT Strategy Agent — App</title>
-</head>
-<body style="background:#0b0b0b;color:white;font-family:sans-serif;padding:40px">
+<script>
+  const form = document.querySelector("form"); // ou ton select exact
+  const emailInput = document.querySelector('input[type="email"]');
+  const statusEl = document.querySelector("#status"); // adapte si besoin
 
-  <h1>Dashboard</h1>
-  <p id="status">Chargement…</p>
+  async function onSubmit(e) {
+    e.preventDefault();
+    const email = (emailInput.value || "").trim().toLowerCase();
+    if (!email) return;
 
-  <script>
-    fetch("https://yt-strategy-agent.onrender.com/auth/me", {
-      credentials: "include"
-    })
-    .then(r => r.json())
-    .then(me => {
-      if (!me.authenticated) {
-        document.getElementById("status").innerText = "Non connecté";
-        return;
-      }
+    if (statusEl) statusEl.textContent = "Connexion en cours...";
 
-      document.getElementById("status").innerHTML = `
-        Connecté ✔️<br>
-        Email : ${me.email}<br>
-        Trial actif : ${me.trial_active ? "oui" : "non"}
-      `;
-    })
-    .catch(() => {
-      document.getElementById("status").innerText = "Erreur API";
+    const r = await fetch("/api/auth/magic/request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // ✅ obligatoire pour cookie
+      body: JSON.stringify({ email }),
     });
-  </script>
 
-</body>
-</html>
+    if (!r.ok) {
+      const t = await r.text();
+      if (statusEl) statusEl.textContent = "Erreur: " + t;
+      return;
+    }
 
+    // ✅ on entre dans l'app direct
+    window.location.href = "/app";
+  }
+
+  if (form) form.addEventListener("submit", onSubmit);
+</script>

@@ -95,7 +95,7 @@ def saas_now():
 
 class MagicLoginReq(BaseModel):
     email: str
-    
+
 @app.post("/auth/magic/request")
 def auth_magic_request(payload: MagicLoginReq, response: Response):
     email = (payload.email or "").strip().lower()
@@ -116,7 +116,7 @@ def auth_magic_request(payload: MagicLoginReq, response: Response):
         key=SESSION_COOKIE,
         value=session_id,
         httponly=True,
-        samesite="none",
+        samesite="lax",
         secure=True,   # en prod HTTPS ok
     )
 
