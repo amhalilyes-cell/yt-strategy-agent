@@ -3,15 +3,16 @@
     "framework": null,
     "buildCommand": null,
     "outputDirectory": ".",
-    "routes": [
+  
+    "rewrites": [
       {
-        "src": "/api/(.*)",
-        "dest": "https://yt-strategy-agent.onrender.com/$1"
-      },
-      {
-        "src": "/(.*)",
-        "dest": "/index.html"
+        "source": "/api/(.*)",
+        "destination": "https://TON-BACKEND.onrender.com/$1"
       }
+    ],
+  
+    "routes": [
+      { "src": "/app", "dest": "/app.html" },
+      { "src": "/(.*)", "dest": "/index.html" }
     ]
   }
-  
