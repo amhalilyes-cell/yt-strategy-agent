@@ -117,7 +117,7 @@ def auth_magic_request(payload: MagicLoginReq, response: Response):
         value=session_id,
         httponly=True,
         samesite="lax",
-        secure=True,   # en prod HTTPS ok
+        secure=False,   # en prod HTTPS ok
     )
 
     # ✅ au lieu de "lien envoyé", on dit "ok + redirect"
