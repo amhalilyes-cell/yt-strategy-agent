@@ -164,7 +164,6 @@
       color: #caffdf;
     }
 
-    /* Result (pretty blueprint) */
     .hr{ height:1px; background:#1d1d1d; margin:16px 0; }
 
     .sectionTitle{
@@ -206,7 +205,6 @@
 <body>
   <div class="container">
 
-    <!-- TOP BAR (shown in app states) -->
     <div id="topbar" class="topbar hidden">
       <div class="brand"><span class="dot"></span> YT Strategy Agent</div>
       <div style="display:flex; gap:10px; align-items:center;">
@@ -215,7 +213,6 @@
       </div>
     </div>
 
-    <!-- ============ VIEW: LANDING ============ -->
     <section id="viewLanding">
       <h1>
         Colle un lien YouTube.<br/>
@@ -246,17 +243,16 @@
       <footer>© 2026 — YT Strategy Agent</footer>
     </section>
 
-    <!-- ============ VIEW: LOGIN ============ -->
     <section id="viewLogin" class="hidden">
       <h2>Accède à ton analyse</h2>
-      <p>Entre ton email. On t’envoie un lien pour te connecter.</p>
+      <p>Entre ton email. Connexion instantanée (essai 7 jours).</p>
 
       <div class="card">
         <label class="muted">Email</label>
         <input id="emailInput" class="input" placeholder="ton@email.com" autocomplete="email" />
 
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
-          <button id="sendLinkBtn" class="btn primary" type="button">Recevoir mon lien</button>
+          <button id="sendLinkBtn" class="btn primary" type="button">Continuer</button>
           <button id="backToLandingBtn" class="btn secondary" type="button">Retour</button>
         </div>
 
@@ -267,9 +263,7 @@
       <footer>© 2026 — YT Strategy Agent</footer>
     </section>
 
-    <!-- ============ VIEW: APP (ANALYZE) ============ -->
     <section id="viewApp" class="hidden">
-
       <h2>Analyse une de tes vidéos YouTube</h2>
       <p>Colle le lien d’une de tes vidéos. On te dira exactement quoi répliquer et quoi arrêter.</p>
 
@@ -346,7 +340,6 @@
       <footer>© 2026 — YT Strategy Agent</footer>
     </section>
 
-    <!-- ============ VIEW: PAYWALL ============ -->
     <section id="viewPaywall" class="hidden">
       <h2>Ton essai gratuit est terminé</h2>
       <p>
@@ -379,24 +372,15 @@
     /*********************************************************
      * CONFIG
      *********************************************************/
-    const API_BASE = "https://yt-strategy-agent.onrender.com";
+    const API_BASE = "/api";
 
-    // Endpoints à brancher côté backend (magic link + session)
-    // - POST /auth/magic/request  { email }
-    // - GET  /auth/me             -> { authenticated, trial_active, trial_until, user_email, ... }
-    // - POST /auth/logout
-    //
-    // Si tu n’as pas encore ça côté backend, l’UI est prête.
     const ENDPOINTS = {
       requestMagicLink: API_BASE + "/auth/magic/request",
       me: API_BASE + "/auth/me",
       logout: API_BASE + "/auth/logout",
-
-      // Ton endpoint existant :
-      blueprintV2: API_BASE + "/playbook/blueprint/v2",
+      blueprintV2: API_BASE + "/saas/playbook/blueprint/v2",
     };
 
-    // Lien paiement (Stripe checkout, pricing page, etc.)
     const SUBSCRIBE_URL = "https://ton-lien-stripe-checkout.com"; // TODO
     document.getElementById("subscribeBtn").href = SUBSCRIBE_URL;
 
@@ -416,7 +400,6 @@
       Object.values(views).forEach(v => v.classList.add("hidden"));
       views[name].classList.remove("hidden");
 
-      // topbar seulement quand connecté (app/paywall)
       const showTop = (name === "app" || name === "paywall");
       topbar.classList.toggle("hidden", !showTop);
     }
@@ -450,21 +433,17 @@
     function extractVideoId(url){
       try{
         const u = new URL(url.trim());
-        // youtu.be/VIDEOID
         if (u.hostname.includes("youtu.be")){
           const id = u.pathname.replace("/", "").trim();
           return id || null;
         }
-        // youtube.com/watch?v=VIDEOID
         const v = u.searchParams.get("v");
         if (v) return v.trim();
 
-        // youtube.com/shorts/VIDEOID
         const parts = u.pathname.split("/").filter(Boolean);
         const shortsIndex = parts.indexOf("shorts");
         if (shortsIndex >= 0 && parts[shortsIndex+1]) return parts[shortsIndex+1].trim();
 
-        // youtube.com/embed/VIDEOID
         const embedIndex = parts.indexOf("embed");
         if (embedIndex >= 0 && parts[embedIndex+1]) return parts[embedIndex+1].trim();
 
@@ -475,7 +454,7 @@
     }
 
     /*********************************************************
-     * AUTH (magic link) + SESSION
+     * AUTH (cookie session)
      *********************************************************/
     async function apiReadJson(r){
       const text = await r.text();
@@ -483,7 +462,6 @@
       catch(e){ return { json: null, text }; }
     }
 
-    // Ici on suppose que le backend gère la session via cookie httpOnly (le plus propre)
     async function fetchMe(){
       try{
         const r = await fetch(ENDPOINTS.me, { credentials: "include" });
@@ -513,7 +491,7 @@
     }
 
     /*********************************************************
-     * BLUEPRINT (no tokens, no endpoints visible)
+     * BLUEPRINT rendering
      *********************************************************/
     let lastMarkdown = "";
 
@@ -610,8 +588,6 @@
     }
 
     function computeVerdictFromBlueprint(bp){
-      // Si ton backend renvoie déjà un verdict/outlier_score, tu peux l’afficher direct.
-      // Ici : fallback simple (ne fait pas de promesse mensongère)
       const confidence = bp.confidence || bp.confidence_level || null;
       if (confidence && typeof confidence === "string") {
         if (confidence.toLowerCase().includes("high")) return "Fort signal : tu peux répliquer ce format.";
@@ -621,7 +597,7 @@
     }
 
     /*********************************************************
-     * WIRING (buttons + routing)
+     * WIRING
      *********************************************************/
     const startBtn = document.getElementById("startBtn");
     const backToLandingBtn = document.getElementById("backToLandingBtn");
@@ -688,30 +664,34 @@
       showView("landing");
     };
 
+    // ✅ FIX: braces + try/catch correct
     sendLinkBtn.onclick = async () => {
       hideNotice(loginNotice);
-      const email = emailInput.value.trim();
+      const email = (emailInput.value || "").trim();
+
       if (!email || !email.includes("@")){
         setNotice(loginNotice, "error", "Entre un email valide.");
         return;
       }
 
       sendLinkBtn.disabled = true;
-      sendLinkBtn.textContent = "Envoi…";
+      sendLinkBtn.textContent = "Connexion…";
 
-      // Si endpoints pas encore prêts => message propre
       try{
         const res = await requestMagicLink(email);
+
         if (!res.ok){
-          setNotice(loginNotice, "error", "Impossible d’envoyer le lien. Réessaie dans une minute.");
-        } else {
-          setNotice(loginNotice, "ok", "Lien envoyé. Vérifie ta boîte mail (et tes spams).");
+          setNotice(loginNotice, "error", "Connexion impossible. Réessaie dans une minute.");
+          return;
         }
+
+        setNotice(loginNotice, "ok", "Connecté ✅");
+        showView("app");
       }catch(e){
-        setNotice(loginNotice, "error", "Impossible d’envoyer le lien. Réessaie.");
-      } finally {
+        setNotice(loginNotice, "error", "Problème réseau. Réessaie.");
+      }finally{
         sendLinkBtn.disabled = false;
-        sendLinkBtn.textContent = "Recevoir mon lien";
+        sendLinkBtn.textContent = "Continuer";
       }
     };
 
@@ -720,7 +700,7 @@
       resultCard.classList.add("hidden");
       lastMarkdown = "";
 
-      const url = ytUrlInput.value.trim();
+      const url = (ytUrlInput.value || "").trim();
       const videoId = extractVideoId(url);
 
       if (!url){
@@ -737,7 +717,6 @@
       startLoading();
 
       try{
-        // Ton backend attend video_id : on l’envoie (no tokens exposed)
         const r = await fetch(ENDPOINTS.blueprintV2, {
           method: "POST",
           credentials: "include",
@@ -754,14 +733,12 @@
         const { json } = await apiReadJson(r);
 
         if (!r.ok || !json){
-          // messages “humains”
           if (r.status === 401 || r.status === 403){
             setNotice(appNotice, "error", "Ta session a expiré. Reconnecte-toi.");
             showView("login");
             return;
           }
           if (r.status === 402){
-            // paywall (si tu choisis 402 pour trial fini)
             showView("paywall");
             return;
           }
@@ -775,7 +752,6 @@
 
         const bp = unwrapBlueprint(json);
 
-        // tags
         const format = bp.format || bp.format_type || "-";
         const duration = Array.isArray(bp.duration_target_seconds) ? bp.duration_target_seconds.join("–") + "s" : "-";
         const confidence = bp.confidence || bp.confidence_level || "-";
@@ -784,13 +760,9 @@
         tagDuration.textContent = `durée: ${duration}`;
         tagConfidence.textContent = `confidence: ${confidence}`;
 
-        // verdict (fallback)
         verdictText.textContent = computeVerdictFromBlueprint(bp);
-
-        // baseline (si ton backend renvoie des champs baseline_* tu les mets ici)
         baselineText.textContent = "—";
 
-        // hook
         const hook = bp.hook_structure || {};
         const hookLines = [];
         if (hook.type) hookLines.push(`Type : ${hook.type}`);
@@ -800,16 +772,10 @@
         examples.forEach(e => hookLines.push(`Exemple : ${e}`));
         renderList(hookList, hookLines);
 
-        // kill
         renderKvList(killList, bp.kill_conditions || {});
-
-        // structure
         renderList(structureList, arr(bp.content_structure));
-
-        // posting
         renderKvList(postingList, bp.posting_strategy || {});
 
-        // ideas (limit 5)
         const ideas = arr(bp.ideas).slice(0,5).map(it => {
           if (typeof it === "string") return it;
           const idea = it.idea || it.title || "Idée";
@@ -821,9 +787,9 @@
         lastMarkdown = toMarkdown(json);
         resultCard.classList.remove("hidden");
 
-      } catch(e){
+      }catch(e){
         setNotice(appNotice, "error", "Problème réseau. Réessaie.");
-      } finally {
+      }finally {
         stopLoading();
         analyzeBtn.disabled = false;
         analyzeBtn.textContent = "Analyser cette vidéo";
@@ -845,17 +811,14 @@
     };
 
     /*********************************************************
-     * BOOT: decide view based on session + trial
+     * BOOT
      *********************************************************/
     async function boot(){
-      // Par défaut, landing
       showView("landing");
 
-      // Tente de détecter une session existante
       const me = await fetchMe();
       if (!me || !me.authenticated) return;
 
-      // Format trial_until lisible si possible
       const trialActive = !!me.trial_active;
       let trialUntil = null;
       if (me.trial_until){
@@ -867,7 +830,6 @@
 
       setTrialPill({ trialActive, trialUntil });
 
-      // routing trial
       if (trialActive) showView("app");
       else showView("paywall");
     }
@@ -876,4 +838,3 @@
   </script>
 </body>
 </html>
-
