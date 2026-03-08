@@ -1,9 +1,8 @@
 {
-    "version": 2,
-    "outputDirectory": ".",
-    "routes": [
-      { "src": "^/api/(.*)", "dest": "https://yt-strategy-agent.onrender.com" },
-      { "src": "^/app$", "dest": "/app.html" },
-      { "src": "^(.*)$", "dest": "/index.html" }
+    "rewrites": [
+      {
+        "source": "/api/(.*)",
+        "destination": "https://yt-strategy-agent.onrender.com/$1"
+      }
     ]
   }
